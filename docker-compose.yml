@@ -34,6 +34,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://nvhomes.vn/api
     container_name: nvhome_frontend
     ports:
       - "3000:3000"
