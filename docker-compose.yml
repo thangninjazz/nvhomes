@@ -19,6 +19,8 @@ services:
       context: ./Backend
       dockerfile: Dockerfile
     container_name: nvhome_backend
+    ports:
+      - "5232:5232"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=nvhomedb;Username=postgres;Password=${DB_PASSWORD:-password}
@@ -33,6 +35,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: nvhome_frontend
+    ports:
+      - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=https://nvhomes.vn/api
     depends_on:
