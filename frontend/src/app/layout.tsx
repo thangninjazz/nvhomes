@@ -1,39 +1,66 @@
-import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
-import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { cn } from "@/lib/utils";
+import type { Metadata } from 'next'
+import { Playfair_Display, Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const playfair = Playfair_Display({ 
+  subsets: ["latin"],
+  variable: '--font-serif',
+  display: 'swap'
+});
 
-const inter = Inter({ subsets: ["latin"] });
-
-import ConditionalFloatingContact from "@/components/layout/ConditionalFloatingContact";
-import ConditionalChatWidget from "@/components/layout/ConditionalChatWidget";
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: '--font-sans',
+  display: 'swap'
+});
 
 export const metadata: Metadata = {
-  title: "Nội Thất NV Homes | Thiết kế & Thi công nội thất trọn gói",
-  description: "Nội Thất NV Homes chuyên cung cấp giải pháp thiết kế và thi công nội thất cao cấp. Xưởng sản xuất trực tiếp tại Phúc Thọ, Hà Nội. Uy tín, chất lượng, giá xưởng.",
-};
+  title: 'NV Homes | Thiết Kế & Thi Công Nội Thất Cao Cấp',
+  description: 'Kiến tạo đẳng cấp cho ngôi nhà bạn - Thiết kế sáng tạo, thi công tận tâm, chất lượng từ tâm',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
+
+import { ThemeProvider } from '@/components/landing/theme-provider'
+import { ThemeToggleFixed } from '@/components/landing/theme-toggle-fixed'
+import { FloatingCTA } from '@/components/landing/floating-cta'
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="vi" className={cn("scroll-smooth antialiased", "font-sans", geist.variable)}>
-      <body className={`${inter.className} min-h-screen flex flex-col bg-stone-50 text-stone-950`}>
-        <Navbar />
-        {/* pt-16 đẩy nội dung xuống dưới Navbar cố định */}
-        <main className="flex-1 pt-16">
+    <html lang="vi" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
-        </main>
-        <Footer />
-        <ConditionalFloatingContact />
-        <ConditionalChatWidget />
+          <ThemeToggleFixed />
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

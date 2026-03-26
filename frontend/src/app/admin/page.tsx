@@ -29,14 +29,14 @@ export default function AdminDashboard() {
           api.get('/products'),
           api.get('/categories'),
           api.get('/projects'),
-          api.get('/leads')
+          api.get('/customers')
         ]);
 
         setStats({
           products: prodRes.status === 'fulfilled' ? prodRes.value.data.length : 0,
           categories: catRes.status === 'fulfilled' ? catRes.value.data.length : 0,
           projects: projRes.status === 'fulfilled' ? (Array.isArray(projRes.value.data) ? projRes.value.data.length : (projRes.value.data.value?.length || 0)) : 0,
-          leads: leadRes.status === 'fulfilled' ? leadRes.value.data.length : 0
+          leads: leadRes.status === 'fulfilled' ? (leadRes.value.data.items?.length || leadRes.value.data.length || 0) : 0
         });
       } catch (err) {
         console.error("Lỗi fetch stats:", err);
@@ -48,7 +48,7 @@ export default function AdminDashboard() {
     const fetchCrmStats = async () => {
       try {
         setCrmLoading(true);
-        const res = await api.get('/crm/dashboard');
+        const res = await api.get('/dashboard/crm');
         setCrmStats(res.data);
       } catch (err) {
         console.error("Lỗi fetch CRM dashboard:", err);
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
             <div className="flex items-start gap-4 pb-6 border-b border-stone-50">
                 <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center shrink-0 border border-stone-200">🗄️</div>
                 <div>
-                    <p className="font-bold text-lg text-stone-900">Database Core (SQLite)</p>
+                    <p className="font-bold text-lg text-stone-900">Database Core (PostgreSQL)</p>
                     <p className="text-stone-500">Hoạt động ổn định. Đã kết nối qua Connection String trong appsettings.json.</p>
                 </div>
             </div>
