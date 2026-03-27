@@ -20,7 +20,7 @@ public class CategoriesController : ControllerBase
 
     // Lấy Menu theo dạng Tree (Đa cấp) đệ quy
     [HttpGet("tree")]
-    public async Task<IActionResult> GetMenuTree([FromQuery] string type = "Product")
+    public async Task<IActionResult> GetMenuTree([FromQuery] string type = "Product", [FromQuery] bool includeHidden = false)
     {
         // Chuyển đổi string sang Enum
         if (!Enum.TryParse<CategoryType>(type, true, out var catType))
@@ -28,9 +28,15 @@ public class CategoriesController : ControllerBase
             catType = CategoryType.Product;
         }
 
-        // Lấy tất cả các Category hiển thị (IsVisible = true) thuộc Type tương ứng
-        var allCategories = await _context.Categories
-            .Where(c => c.IsVisible && c.Type == catType)
+        // Lấy tất cả các Category thuộc Type tương ứng (Lọc theo IsVisible nếu không includeHidden)
+        var query = _context.Categories.Where(c => c.Type == catType);
+        
+        if (!includeHidden)
+        {
+            query = query.Where(c => c.IsVisible);
+        }
+
+        var allCategories = await query
             .OrderBy(c => c.OrderIndex)
             .ToListAsync();
 

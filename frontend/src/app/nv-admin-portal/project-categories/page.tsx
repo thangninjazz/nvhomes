@@ -22,7 +22,7 @@ export default function ProjectCategoryManager() {
     try {
       setLoading(true);
       // Fetch specifically for Project type
-      const res = await api.get('/categories/tree?type=Project');
+      const res = await api.get('/categories/tree?type=Project&includeHidden=true');
       setTree(res.data);
     } catch (err: any) {
       console.error("Lỗi fetch hạng mục dự án:", err);

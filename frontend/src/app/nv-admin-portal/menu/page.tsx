@@ -20,7 +20,7 @@ export default function MenuManager() {
   const fetchTree = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/categories/tree');
+      const res = await api.get('/categories/tree?includeHidden=true');
       setTree(res.data);
     } catch (err: any) {
       console.error("Lỗi fetch menu:", err);
