@@ -5,8 +5,7 @@ import dynamic from "next/dynamic";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
 import { MultiImageUpload } from "@/components/common/MultiImageUpload";
-import "react-quill-new/dist/quill.snow.css"; // Sử dụng react-quill-new hoặc bản fix cho React 19 nếu có, 
-// nhưng ở đây ta dùng react-quill chuẩn đã install
+import "react-quill/dist/quill.snow.css"; // Sử dụng react-quill chuẩn đã install
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
