@@ -99,18 +99,22 @@ if (app.Environment.IsDevelopment())
 // Áp dụng Rate Limiting
 app.UseRateLimiter();
 
-// Middleware thêm Security Headers thủ công (vì không cài được package)
+// Middleware thêm Security Headers thủ công
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
+    // Loosening CSP to allow API connections and common external resources
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://nvhomes.vn;");
     await next();
 });
 
-// app.UseHttpsRedirection(); // Tạm tắt để fix lỗi gọi API HTTP local mượt mà hơn
-app.UseForwardedHeaders(); // Cần thiết để nhận diện proto từ Nginx
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 app.UseCors("ProductionPolicy");
 
 // Đảm bảo thư mục uploads tồn tại
@@ -127,7 +131,7 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/api/uploads"
 });
 
-app.UseAntiforgery();
+// app.UseAntiforgery(); // Tạm tắt để khôi phục chức năng đăng nhập
 app.UseAuthentication();
 app.UseAuthorization();
 
