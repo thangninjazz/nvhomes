@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NVHome.Application.DTOs.Products;
 using NVHome.Domain.Entities;
 using NVHome.Infrastructure.Data;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace NVHome.API.Controllers;
 
@@ -12,16 +13,35 @@ namespace NVHome.API.Controllers;
 public class CategoriesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMemoryCache _cache;
+    private const string CategoryTreeCacheKey = "CategoryTree_";
 
-    public CategoriesController(ApplicationDbContext context)
+    public CategoriesController(ApplicationDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
+    }
+
+    private void ClearCategoryCache()
+    {
+        // Xóa cache cho mọi type và trạng thái ẩn/hiện
+        _cache.Remove($"{CategoryTreeCacheKey}Product_true");
+        _cache.Remove($"{CategoryTreeCacheKey}Product_false");
+        _cache.Remove($"{CategoryTreeCacheKey}Project_true");
+        _cache.Remove($"{CategoryTreeCacheKey}Project_false");
     }
 
     // Lấy Menu theo dạng Tree (Đa cấp) đệ quy
     [HttpGet("tree")]
     public async Task<IActionResult> GetMenuTree([FromQuery] string type = "Product", [FromQuery] bool includeHidden = false)
     {
+        var cacheKey = $"{CategoryTreeCacheKey}{type}_{includeHidden}";
+        
+        if (_cache.TryGetValue(cacheKey, out List<CategoryResponse>? cachedTree))
+        {
+            return Ok(cachedTree);
+        }
+
         // Chuyển đổi string sang Enum
         if (!Enum.TryParse<CategoryType>(type, true, out var catType))
         {
@@ -58,7 +78,12 @@ public class CategoriesController : ControllerBase
             }).ToList();
         }
 
-        return Ok(BuildTree(null));
+        var result = BuildTree(null);
+
+        // Lưu vào cache trong 30 phút
+        _cache.Set(cacheKey, result, TimeSpan.FromMinutes(30));
+
+        return Ok(result);
     }
 
     // Flat list cho Admin (không cần auth để admin page load được)
@@ -130,6 +155,8 @@ public class CategoriesController : ControllerBase
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
 
+        ClearCategoryCache();
+
         return Ok(new { Message = "Đã tạo danh mục thành công.", Id = category.Id });
     }
 
@@ -149,6 +176,9 @@ public class CategoriesController : ControllerBase
         category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        
+        ClearCategoryCache();
+        
         return Ok(new { Message = "Cập nhật danh mục thành công." });
     }
 
@@ -161,6 +191,9 @@ public class CategoriesController : ControllerBase
 
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
+        
+        ClearCategoryCache();
+        
         return Ok(new { Message = "Đã xóa danh mục thành công." });
     }
 }

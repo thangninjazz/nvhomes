@@ -20,6 +20,9 @@ public static class DependencyInjection
         
         // Đăng ký ReCaptcha Service và HttpClient
         services.AddHttpClient<IReCaptchaService, ReCaptchaService>();
+        
+        // Đăng ký Telegram Service để gửi thông báo cho Lead mới
+        services.AddHttpClient<ITelegramService, TelegramService>();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secret = jwtSettings["Secret"];

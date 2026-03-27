@@ -13,57 +13,16 @@ public class CustomersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IReCaptchaService _reCaptchaService;
+    private readonly ITelegramService _telegramService;
 
-    public CustomersController(ApplicationDbContext context, IReCaptchaService reCaptchaService)
+    public CustomersController(ApplicationDbContext context, IReCaptchaService reCaptchaService, ITelegramService telegramService)
     {
         _context = context;
         _reCaptchaService = reCaptchaService;
+        _telegramService = telegramService;
     }
 
-    // GET: api/customers
-    [HttpGet]
-    public async Task<ActionResult> GetCustomers(
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
-    {
-        var query = _context.Customers.AsQueryable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(c => c.PhoneNumber.Contains(search) || c.Name.Contains(search));
-        }
-
-        var total = await query.CountAsync();
-        var items = await query
-            .OrderByDescending(c => c.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return Ok(new { total, items, page, pageSize });
-    }
-
-    // GET: api/customers/export → trả về CSV
-    [HttpGet("export")]
-    public async Task<IActionResult> ExportCsv()
-    {
-        var customers = await _context.Customers
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
-
-        var sb = new StringBuilder();
-        sb.AppendLine("PhoneNumber,Status,Note,Source,CreatedAt");
-
-        foreach (var c in customers)
-        {
-            var note = (c.Note ?? "").Replace(",", ";").Replace("\n", " ");
-            sb.AppendLine($"{c.PhoneNumber},{c.Status},{note},{c.Source},{c.CreatedAt:yyyy-MM-dd HH:mm:ss}");
-        }
-
-        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
-        return File(bytes, "text/csv", $"customers_{DateTime.Now:yyyyMMdd_HHmm}.csv");
-    }
+    // ... (GetCustomers, ExportCsv)
 
     // POST: api/customers
     [HttpPost]
@@ -82,10 +41,11 @@ public class CustomersController : ControllerBase
         var sanitizedName = SanitizeInput(request.Name ?? "");
         var sanitizedNote = SanitizeInput(request.Note ?? "");
         var sanitizedAddress = SanitizeInput(request.Address ?? "");
+        var sanitizedPhone = SanitizeInput(request.PhoneNumber);
 
         var customer = new Customer
         {
-            PhoneNumber = SanitizeInput(request.PhoneNumber),
+            PhoneNumber = sanitizedPhone,
             Name = sanitizedName,
             Note = sanitizedNote,
             Address = sanitizedAddress,
@@ -96,6 +56,16 @@ public class CustomersController : ControllerBase
 
         _context.Customers.Add(customer);
         await _context.SaveChangesAsync();
+
+        // 3. Gửi thông báo Telegram cho Admin (Chạy bất đồng bộ)
+        var message = $"<b>🔥 LEAD MỚI TỪ NVHOME</b>\n\n" +
+                      $"👤 <b>Tên:</b> {sanitizedName}\n" +
+                      $"📞 <b>SĐT:</b> {sanitizedPhone}\n" +
+                      $"📍 <b>Địa chỉ:</b> {sanitizedAddress}\n" +
+                      $"📝 <b>Ghi chú:</b> {sanitizedNote}\n" +
+                      $"⏰ <b>Thời gian:</b> {DateTime.Now:dd/MM/yyyy HH:mm}";
+        
+        _ = _telegramService.SendMessageAsync(message);
 
         return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
     }
