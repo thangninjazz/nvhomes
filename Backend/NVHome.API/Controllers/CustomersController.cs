@@ -23,7 +23,28 @@ public class CustomersController : ControllerBase
         _telegramService = telegramService;
     }
 
-    // ... (GetCustomers, ExportCsv)
+    // GET: api/customers - Lấy danh sách khách hàng cho CRM
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+    {
+        return await _context.Customers
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync();
+    }
+
+    // GET: api/customers/export - Xuất file CSV
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportCsv()
+    {
+        var customers = await _context.Customers.ToListAsync();
+        var builder = new StringBuilder();
+        builder.AppendLine("Id,Name,Phone,Address,Note,Status,CreatedAt");
+        foreach (var c in customers)
+        {
+            builder.AppendLine($"{c.Id},{c.Name},{c.PhoneNumber},{c.Address},{c.Note},{c.Status},{c.CreatedAt}");
+        }
+        return File(Encoding.UTF8.GetBytes(builder.ToString()), "text/csv", "customers.csv");
+    }
 
     // POST: api/customers
     [HttpPost]
