@@ -189,11 +189,33 @@ public class CategoriesController : ControllerBase
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return NotFound("Không tìm thấy danh mục.");
 
+        // 1. Kiểm tra xem có danh mục con không (Ngăn xóa cha khi còn con)
+        var hasChildren = await _context.Categories.AnyAsync(c => c.ParentId == id);
+        if (hasChildren)
+        {
+            return BadRequest(new { message = "Không thể xóa vì danh mục này có chứa các danh mục con. Hãy xóa hoặc chuyển các danh mục con trước." });
+        }
+
+        // 2. Kiểm tra xem có sản phẩm thuộc danh mục này không
+        var hasProducts = await _context.Products.AnyAsync(p => p.CategoryId == id);
+        if (hasProducts)
+        {
+            return BadRequest(new { message = "Không thể xóa vì vẫn còn sản phẩm đang thuộc danh mục này. Hãy đổi danh mục cho sản phẩm trước." });
+        }
+
+        // 3. Kiểm tra xem có dự án thuộc danh mục này không (Nếu là type Project)
+        var hasProjects = await _context.Projects.AnyAsync(p => p.CategoryId == id);
+        if (hasProjects)
+        {
+            return BadRequest(new { message = "Không thể xóa vì vẫn còn dự án đang thuộc danh mục này." });
+        }
+
+        // Xóa hoàn toàn khỏi database (Clean hard delete)
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
         
         ClearCategoryCache();
         
-        return Ok(new { Message = "Đã xóa danh mục thành công." });
+        return Ok(new { message = "Đã xóa danh mục thành công và làm sạch database." });
     }
 }

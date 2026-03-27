@@ -78,14 +78,15 @@ export default function MenuManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa danh mục này? Hệ thống sẽ xóa vĩnh viễn khỏi database nếu danh mục này không còn mục con hoặc sản phẩm/dự án liên quan.")) {
       try {
         await api.delete(`/categories/${id}`);
-        alert("Xóa danh mục thành công!");
+        alert("Xóa danh mục thành công và đã làm sạch database!");
         fetchTree();
       } catch (err: any) {
         console.error("Lỗi xóa danh mục:", err);
-        const msg = err.response?.data?.message || err.message || "Không thể xóa danh mục.";
+        const data = err.response?.data;
+        const msg = data?.message || data?.Message || (typeof data === 'string' ? data : null) || err.message || "Không thể xóa danh mục.";
         alert("Lỗi: " + msg);
       }
     }
