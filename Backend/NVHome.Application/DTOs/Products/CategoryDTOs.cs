@@ -17,6 +17,8 @@ public class CategoryResponse
     public string Slug { get; set; } = string.Empty;
     public string Type { get; set; } = "Product";
     public Guid? ParentId { get; set; }
+    public string? ParentName { get; set; }
+    public string? ParentSlug { get; set; }
     public int OrderIndex { get; set; }
     public bool IsVisible { get; set; }
     

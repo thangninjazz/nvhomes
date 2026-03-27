@@ -88,6 +88,7 @@ public class CategoriesController : ControllerBase
     public async Task<IActionResult> GetCategoryBySlug(string slug)
     {
         var category = await _context.Categories
+            .Include(c => c.Parent)
             .FirstOrDefaultAsync(c => c.Slug == slug);
 
         if (category == null) return NotFound("Không tìm thấy danh mục.");
@@ -98,6 +99,8 @@ public class CategoriesController : ControllerBase
             Name = category.Name,
             Slug = category.Slug,
             ParentId = category.ParentId,
+            ParentName = category.Parent?.Name,
+            ParentSlug = category.Parent?.Slug,
             OrderIndex = category.OrderIndex,
             IsVisible = category.IsVisible,
             Type = category.Type.ToString()

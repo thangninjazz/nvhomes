@@ -7,7 +7,7 @@ import { api } from '@/services/api';
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [products, setProducts] = useState<any[]>([]);
-  const [categoryName, setCategoryName] = useState('');
+  const [category, setCategory] = useState<any>(null);
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
 
@@ -16,9 +16,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch category details for breadcrumb
+        // Fetch category details for breadcrumb (including parent)
         const catRes = await api.get(`/categories/byslug/${slug}`);
-        setCategoryName(catRes.data.name);
+        setCategory(catRes.data);
 
         // Gửi slug để backend lọc đúng danh mục
         const res = await api.get(`/products?categorySlug=${slug}&sortOrder=${sortOrder}`);
@@ -26,7 +26,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       } catch (error) {
         console.error("Lỗi fetch dữ liệu:", error);
         setProducts([]); 
-        setCategoryName(slug.replace('-', ' '));
+        setCategory({ name: slug.replace('-', ' ') });
       } finally {
         setLoading(false);
       }
@@ -39,13 +39,23 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
       {/* HEADER GRID */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-6 border-b border-stone-200">
         <div>
-          <nav className="flex text-sm font-semibold text-stone-400 mb-3 tracking-wide">
+          <nav className="flex text-sm font-semibold text-stone-400 mb-3 tracking-wide items-center">
             <Link href="/" className="hover:text-stone-900 transition-colors">TRANG CHỦ</Link>
+            
+            {category?.parentName && (
+              <>
+                <span className="mx-3">/</span>
+                <Link href={`/category/${category.parentSlug}`} className="hover:text-stone-900 transition-colors uppercase">
+                  {category.parentName}
+                </Link>
+              </>
+            )}
+
             <span className="mx-3">/</span>
-            <span className="text-stone-900 uppercase">{categoryName || slug.replace('-', ' ')}</span>
+            <span className="text-stone-900 uppercase">{category?.name || slug.replace('-', ' ')}</span>
           </nav>
           <h1 className="text-4xl md:text-5xl font-black text-stone-900 tracking-tighter uppercase mb-2">
-            {categoryName || slug.replace('-', ' ')}
+            {category?.name || slug.replace('-', ' ')}
           </h1>
         </div>
 
