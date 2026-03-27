@@ -59,12 +59,13 @@ public class CustomersController : ControllerBase
         await _context.SaveChangesAsync();
 
         // 3. Gửi thông báo Telegram cho Admin (Chạy bất đồng bộ)
+        var vietnamTime = DateTime.UtcNow.AddHours(7);
         var message = $"<b>🔥 LEAD MỚI TỪ NVHOME</b>\n\n" +
                       $"👤 <b>Tên:</b> {sanitizedName}\n" +
                       $"📞 <b>SĐT:</b> {sanitizedPhone}\n" +
                       $"📍 <b>Địa chỉ:</b> {sanitizedAddress}\n" +
                       $"📝 <b>Ghi chú:</b> {sanitizedNote}\n" +
-                      $"⏰ <b>Thời gian:</b> {DateTime.Now:dd/MM/yyyy HH:mm}";
+                      $"⏰ <b>Thời gian:</b> {vietnamTime:dd/MM/yyyy HH:mm}";
         
         _ = _telegramService.SendMessageAsync(message);
 
