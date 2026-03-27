@@ -1,10 +1,9 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, X, Phone } from "lucide-react"
+import { Menu, X, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api } from "@/services/api"
+import { useRouter } from "next/navigation"
 
 interface NavLink {
   href: string;
@@ -13,15 +12,16 @@ interface NavLink {
 }
 
 export function Header() {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [categories, setCategories] = useState<any[]>([])
   const [expandedParent, setExpandedParent] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     const fetchTree = async () => {
       try {
         const res = await api.get('/categories/tree')
-        // Filter visible root nodes
         const visibleRoots = res.data.filter((c: any) => c.isVisible)
         setCategories(visibleRoots)
       } catch (err) {
@@ -31,9 +31,16 @@ export function Header() {
     fetchTree()
   }, [])
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      setIsOpen(false)
+    }
+  }
+
   const navLinks: NavLink[] = [
     { href: "/", label: "Trang chủ" },
-    // Map database categories to menu items
     ...categories.map(cat => ({
       href: `/category/${cat.slug}`,
       label: cat.name,
@@ -42,16 +49,15 @@ export function Header() {
         label: child.name
       }))
     })),
-    { href: "/#about", label: "Về NV Home" },
-    { href: "/#contact", label: "Liên hệ" },
+    { href: "/projects", label: "Dự án" },
   ]
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 shrink-0">
             <div className="w-10 h-10 bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-serif text-xl font-bold">N</span>
             </div>
@@ -94,20 +100,22 @@ export function Header() {
             ))}
           </nav>
 
-          {/* CTA & Mobile Menu */}
-          <div className="flex items-center gap-4">
-            <a href="tel:0966245396" className="hidden md:flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4" />
-              <span className="font-medium">0966.245.396</span>
-            </a>
-            <Link href="#contact">
-              <Button className="hidden sm:flex rounded-none px-6" size="sm">
-                Nhận báo giá
-              </Button>
-            </Link>
+          {/* Search bar & Mobile Menu */}
+          <div className="flex items-center flex-1 lg:flex-initial justify-end gap-2 sm:gap-4">
+            <form onSubmit={handleSearch} className="relative group w-full max-w-[120px] sm:max-w-[200px] lg:max-w-[250px]">
+              <input
+                type="text"
+                placeholder="Tìm sản phẩm..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-secondary/50 border-none rounded-full h-10 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary transition-all placeholder:text-muted-foreground/50"
+              />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            </form>
+
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2"
+              className="lg:hidden p-2 text-foreground/80"
               aria-label="Toggle menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -117,7 +125,7 @@ export function Header() {
  
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="lg:hidden py-6 border-t border-border bg-background">
+          <div className="lg:hidden py-6 border-t border-border bg-background h-[calc(100vh-80px)] overflow-y-auto">
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <div key={link.label} className="flex flex-col px-2">
@@ -157,13 +165,6 @@ export function Header() {
                   )}
                 </div>
               ))}
-              <div className="px-2 mt-6">
-                <Link href="#contact" onClick={() => setIsOpen(false)}>
-                  <Button className="rounded-none w-full py-6 text-lg font-black uppercase tracking-widest">
-                    Nhận báo giá ngay
-                  </Button>
-                </Link>
-              </div>
             </nav>
           </div>
         )}

@@ -26,9 +26,13 @@ public class SearchController : ControllerBase
 
         var keyword = q.ToLower();
 
-        // Tìm kiếm sản phẩm
+        // Tìm kiếm sản phẩm (Bao gồm cả theo tên Danh mục)
         var products = await _context.Products
-            .Where(p => p.Name.ToLower().Contains(keyword) || p.Slug.ToLower().Contains(keyword) || (p.Description != null && p.Description.ToLower().Contains(keyword)))
+            .Include(p => p.Category)
+            .Where(p => p.Name.ToLower().Contains(keyword) 
+                || p.Slug.ToLower().Contains(keyword) 
+                || (p.Description != null && p.Description.ToLower().Contains(keyword))
+                || (p.Category != null && p.Category.Name.ToLower().Contains(keyword)))
             .Select(p => new {
                 p.Id,
                 p.Name,
