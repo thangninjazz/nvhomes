@@ -20,11 +20,17 @@ public class CategoriesController : ControllerBase
 
     // Lấy Menu theo dạng Tree (Đa cấp) đệ quy
     [HttpGet("tree")]
-    public async Task<IActionResult> GetMenuTree()
+    public async Task<IActionResult> GetMenuTree([FromQuery] string type = "Product")
     {
-        // Lấy tất cả các Category hiển thị (IsVisible = true)
+        // Chuyển đổi string sang Enum
+        if (!Enum.TryParse<CategoryType>(type, true, out var catType))
+        {
+            catType = CategoryType.Product;
+        }
+
+        // Lấy tất cả các Category hiển thị (IsVisible = true) thuộc Type tương ứng
         var allCategories = await _context.Categories
-            .Where(c => c.IsVisible)
+            .Where(c => c.IsVisible && c.Type == catType)
             .OrderBy(c => c.OrderIndex)
             .ToListAsync();
 
@@ -41,6 +47,7 @@ public class CategoriesController : ControllerBase
                 ParentId = c.ParentId,
                 OrderIndex = c.OrderIndex,
                 IsVisible = c.IsVisible,
+                Type = c.Type.ToString(),
                 Children = BuildTree(c.Id)
             }).ToList();
         }
@@ -50,9 +57,16 @@ public class CategoriesController : ControllerBase
 
     // Flat list cho Admin (không cần auth để admin page load được)
     [HttpGet]
-    public async Task<IActionResult> GetCategories()
+    public async Task<IActionResult> GetCategories([FromQuery] string? type)
     {
-        var categories = await _context.Categories
+        IQueryable<Category> query = _context.Categories;
+
+        if (!string.IsNullOrEmpty(type) && Enum.TryParse<CategoryType>(type, true, out var catType))
+        {
+            query = query.Where(c => c.Type == catType);
+        }
+
+        var categories = await query
             .OrderBy(c => c.OrderIndex)
             .Select(c => new CategoryResponse
             {
@@ -61,7 +75,8 @@ public class CategoriesController : ControllerBase
                 Slug = c.Slug,
                 ParentId = c.ParentId,
                 OrderIndex = c.OrderIndex,
-                IsVisible = c.IsVisible
+                IsVisible = c.IsVisible,
+                Type = c.Type.ToString()
             })
             .ToListAsync();
 
@@ -78,7 +93,8 @@ public class CategoriesController : ControllerBase
             Slug = request.Slug,
             ParentId = request.ParentId,
             OrderIndex = request.OrderIndex,
-            IsVisible = request.IsVisible
+            IsVisible = request.IsVisible,
+            Type = Enum.TryParse<CategoryType>(request.Type, true, out var catType) ? catType : CategoryType.Product
         };
 
         _context.Categories.Add(category);
@@ -99,6 +115,7 @@ public class CategoriesController : ControllerBase
         category.ParentId = request.ParentId;
         category.OrderIndex = request.OrderIndex;
         category.IsVisible = request.IsVisible;
+        category.Type = Enum.TryParse<CategoryType>(request.Type, true, out var catType) ? catType : category.Type;
         category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

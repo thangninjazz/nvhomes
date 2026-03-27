@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Tổng Quan (Dashboard)
             </Link>
             <Link href="/admin/menu" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/menu' ? 'bg-stone-800 text-white' : ''}`}>
-              Quản Lý Menu
+              Hạng mục Sản phẩm
             </Link>
             
             <p className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 mt-6 pl-2">E-Commerce</p>
@@ -71,6 +71,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
             <Link href="/admin/projects" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/projects' ? 'bg-stone-800 text-white' : ''}`}>
               Portfolio Dự Án
+            </Link>
+            <Link href="/admin/project-categories" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/project-categories' ? 'bg-stone-800 text-white' : ''}`}>
+              Hạng mục Dự án
             </Link>
             
             <p className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 mt-6 pl-2">CRM</p>

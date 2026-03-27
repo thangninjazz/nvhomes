@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
 import { ImageUpload } from "@/components/common/ImageUpload";
+import { MultiImageUpload } from "@/components/common/MultiImageUpload";
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -19,7 +20,7 @@ export default function ProductManager() {
     originalPrice: 0,
     discountPrice: 0,
     description: "",
-    images: ""
+    images: [] as string[] // Chuyển thành mảng để dùng MultiImageUpload
   });
 
   const fetchProducts = async () => {
@@ -38,7 +39,8 @@ export default function ProductManager() {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get('/categories/tree');
+      // Chỉ lấy hạng mục thuộc loại Product
+      const res = await api.get('/categories/tree?type=Product');
       // Làm phẳng cây danh mục để chọn trong dropdown
       const flattened: any[] = [];
       const flatten = (items: any[]) => {
@@ -63,7 +65,7 @@ export default function ProductManager() {
 
   const openAddModal = () => {
     setEditingItem(null);
-    setFormData({ name: "", slug: "", categoryId: "", originalPrice: 0, discountPrice: 0, description: "", images: "" });
+    setFormData({ name: "", slug: "", categoryId: "", originalPrice: 0, discountPrice: 0, description: "", images: [] });
     setIsModalOpen(true);
   };
 
@@ -76,7 +78,7 @@ export default function ProductManager() {
       originalPrice: item.originalPrice || 0,
       discountPrice: item.discountPrice || 0,
       description: item.description || "",
-      images: item.images || ""
+      images: item.images ? item.images.split(',') : []
     });
     setIsModalOpen(true);
   };
@@ -89,11 +91,16 @@ export default function ProductManager() {
     }
 
     try {
+      const dataToSend = {
+        ...formData,
+        images: formData.images.join(',') // Join lại thành chuỗi CSV cho Backend
+      };
+
       if (editingItem) {
-        await api.put(`/products/${editingItem.id}`, formData);
+        await api.put(`/products/${editingItem.id}`, dataToSend);
         alert("Cập nhật sản phẩm thành công!");
       } else {
-        await api.post('/products', formData);
+        await api.post('/products', dataToSend);
         alert("Thêm sản phẩm mới thành công!");
       }
       setIsModalOpen(false);
@@ -162,7 +169,7 @@ export default function ProductManager() {
                         <td className="p-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 bg-stone-100 rounded-xl shrink-0 border border-stone-200 overflow-hidden">
-                                  {p.images && <img src={p.images} alt={p.name} className="w-full h-full object-cover" />}
+                                  {p.images && <img src={p.images.split(',')[0]} alt={p.name} className="w-full h-full object-cover" />}
                                 </div>
                                 <span className="font-bold text-stone-800 line-clamp-2">{p.name}</span>
                             </div>
@@ -266,10 +273,10 @@ export default function ProductManager() {
             </div>
           </div>
 
-          <ImageUpload 
-            label="Hình Ảnh Sản Phẩm"
+          <MultiImageUpload 
+            label="Hình Ảnh Sản Phẩm (Gallery)"
             value={formData.images}
-            onChange={(url) => setFormData({ ...formData, images: url })}
+            onChange={(urls) => setFormData({ ...formData, images: urls })}
           />
 
           <div>
