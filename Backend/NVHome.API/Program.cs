@@ -81,7 +81,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate();
+        // context.Database.Migrate(); // Tạm tắt nếu có conflict Model EF9, sẽ chạy tay trên VPS
+        Console.WriteLine("Database check: Skipping auto-migrate to avoid EF9 PendingModelChangesWarning conflict.");
 
         // Seed Admin User nếu chưa có
         if (!context.Users.Any())
