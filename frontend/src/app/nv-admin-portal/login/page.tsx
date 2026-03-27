@@ -23,14 +23,11 @@ export default function AdminLogin() {
       // Gọi API Đăng nhập .NET Backend
       const res = await api.post('/auth/login', { email, password });
       
-      // Lưu Token vào State + LocalStorage
-      setAuth(res.data.token, { email: res.data.email, role: res.data.role });
+      // Lưu thông tin User vào State (Token đã được Backend lưu vào HttpOnly Cookie)
+      setAuth(null as any, { email: res.data.email, role: res.data.role });
       
-      // Thiết lập token cho các request tiếp theo
-      setAuthToken(res.data.token);
-
       // Nhảy vào CMS Dashboard
-      router.push('/admin');
+      router.push('/nv-admin-portal');
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');

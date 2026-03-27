@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { api } from '@/services/api';
 
 interface AuthState {
   token: string | null;
@@ -8,20 +9,23 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  token: null, // Không dùng token từ localStorage nữa
   user: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null,
   
   setAuth: (token, user) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
     }
-    set({ token, user });
+    set({ token: null, user });
   },
   
-  logout: () => {
+  logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
     set({ token: null, user: null });

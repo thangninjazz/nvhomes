@@ -5,6 +5,6 @@ import { FloatingContact } from "./FloatingContact";
 
 export default function ConditionalFloatingContact() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
+  if (pathname?.startsWith("/nv-admin-portal")) return null;
   return <FloatingContact />;
 }

@@ -62,12 +62,29 @@ public class AuthController : ControllerBase
         // Tạo JWT Token có thời hạn và role tương ứng
         var token = _jwtTokenGenerator.GenerateToken(user);
 
+        // Lưu Token vào HttpOnly Cookie
+        Response.Cookies.Append("access_token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Bắt buộc cho HTTPS
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7) // Tuỳ chỉnh thời hạn theo JWT
+        });
+
         return Ok(new AuthResponse
         {
             UserId = user.Id,
             Email = user.Email,
-            Token = token,
+            Token = null, // Không trả về token qua Body để đảm bảo an toàn
             Role = user.Role.ToString()
         });
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        // Xóa Cookie khi đăng xuất
+        Response.Cookies.Delete("access_token");
+        return Ok(new { Message = "Đăng xuất thành công." });
     }
 }

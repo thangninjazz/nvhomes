@@ -8,11 +8,30 @@ using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Thêm dịch vụ CORS cho phép Frontend gọi API
+// Cấu hình CORS chặt chẽ cho Production
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "https://nvhomes.vn" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("ProductionPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins) // Chỉ cho phép domain từ config
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // Bắt buộc để dùng HttpOnly Cookie
+    });
+});
+
+// Thêm Rate Limiter để chống DDoS (100 requests mỗi 1 phút cho mỗi IP)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 100;
+        opt.QueueLimit = 0;
+    });
 });
 
 // Thêm dịch vụ Controllers và cấu hình JSON để hỗ trợ Enum dạng String
@@ -51,9 +70,22 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Áp dụng Rate Limiting
+app.UseRateLimiter();
+
+// Middleware thêm Security Headers thủ công (vì không cài được package)
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
+    await next();
+});
+
 // app.UseHttpsRedirection(); // Tạm tắt để fix lỗi gọi API HTTP local mượt mà hơn
 app.UseForwardedHeaders(); // Cần thiết để nhận diện proto từ Nginx
-app.UseCors("AllowAll");
+app.UseCors("ProductionPolicy");
 
 // Đảm bảo thư mục uploads tồn tại
 var uploadsDir = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
@@ -84,19 +116,20 @@ using (var scope = app.Services.CreateScope())
         // context.Database.Migrate(); // Tạm tắt nếu có conflict Model EF9, sẽ chạy tay trên VPS
         Console.WriteLine("Database check: Skipping auto-migrate to avoid EF9 PendingModelChangesWarning conflict.");
 
-        // Seed Admin User nếu chưa có
-        if (!context.Users.Any())
+        // Seed Admin User nếu chưa có (Với thông tin bảo mật mới)
+        if (!context.Users.Any(u => u.Email == "nv_super_admin@nvhome.vn"))
         {
             var hasher = services.GetRequiredService<IPasswordHasher>();
             context.Users.Add(new User 
             { 
                 Id = Guid.NewGuid(),
-                Email = "admin@nvhome.com", 
-                PasswordHash = hasher.Hash("admin123"), 
+                Email = "nv_super_admin@nvhome.vn", 
+                PasswordHash = hasher.Hash("NV_Admin_!@#_2026_Secure_789"), 
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow
             });
             context.SaveChanges();
+            Console.WriteLine("Seed: Created new secure Super Admin user.");
         }
     }
     catch (Exception ex)

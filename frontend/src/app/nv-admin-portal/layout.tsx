@@ -16,12 +16,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     // Client-side Route Guard: Chỉ kiểm tra trên trình duyệt
     if (typeof window !== 'undefined') {
-        const isLoginRoute = pathname === '/admin/login';
+        const isLoginRoute = pathname === '/nv-admin-portal/login';
         
-        if (!token && !isLoginRoute) {
-            router.push('/admin/login');
-        } else if (token && isLoginRoute) {
-            router.push('/admin'); // Đã login rồi thì ko vào trang login nữa
+        if (!user && !isLoginRoute) {
+            router.push('/nv-admin-portal/login');
+        } else if (user && isLoginRoute) {
+            router.push('/nv-admin-portal'); // Đã login rồi thì ko vào trang login nữa
         } else {
             setIsAuthorized(true);
         }
@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [token, pathname, router]);
 
   // Nếu đang ở trang login, render component bình thường (không có Sidebar của Admin)
-  if (pathname === '/admin/login') {
+  if (pathname === '/nv-admin-portal/login') {
     return <>{children}</>;
   }
 
@@ -54,35 +54,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className={`transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 invisible pointer-events-none"}`}>
           <div className="h-[72px] flex items-center justify-center border-b border-stone-800 shrink-0">
-            <Link href="/admin" className="text-2xl font-black text-white tracking-widest uppercase truncate px-4">NV.CMS</Link>
+            <Link href="/nv-admin-portal" className="text-2xl font-black text-white tracking-widest uppercase truncate px-4">NV.CMS</Link>
           </div>
           <nav className="flex-1 overflow-y-auto py-8 flex flex-col gap-2 px-5 min-w-[288px]">
             <p className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 pl-2">System Config</p>
-            <Link href="/admin" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal' ? 'bg-stone-800 text-white' : ''}`}>
               Tổng Quan (Dashboard)
             </Link>
-            <Link href="/admin/menu" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/menu' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal/menu" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal/menu' ? 'bg-stone-800 text-white' : ''}`}>
               Hạng mục Sản phẩm
             </Link>
             
             <p className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 mt-6 pl-2">E-Commerce</p>
-            <Link href="/admin/products" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/products' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal/products" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal/products' ? 'bg-stone-800 text-white' : ''}`}>
               Quản Lý Sản Phẩm
             </Link>
-            <Link href="/admin/projects" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/projects' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal/projects" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal/projects' ? 'bg-stone-800 text-white' : ''}`}>
               Portfolio Dự Án
             </Link>
-            <Link href="/admin/project-categories" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/project-categories' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal/project-categories" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal/project-categories' ? 'bg-stone-800 text-white' : ''}`}>
               Hạng mục Dự án
             </Link>
             
             <p className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 mt-6 pl-2">CRM</p>
-            <Link href="/admin/customers" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/admin/customers' ? 'bg-stone-800 text-white' : ''}`}>
+            <Link href="/nv-admin-portal/customers" className={`px-5 py-3.5 rounded-xl hover:bg-stone-800 hover:text-white font-medium transition-colors ${pathname === '/nv-admin-portal/customers' ? 'bg-stone-800 text-white' : ''}`}>
               CRM Khách Hàng
             </Link>
           </nav>
           <div className="p-6 border-t border-stone-800 bg-stone-950/50 flex flex-col gap-3 min-w-[288px]">
-            <button onClick={() => { logout(); router.push('/admin/login'); }} className="flex items-center justify-center gap-2 w-full py-3 bg-red-600/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-colors">
+            <button onClick={() => { logout(); router.push('/nv-admin-portal/login'); }} className="flex items-center justify-center gap-2 w-full py-3 bg-red-600/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-colors">
               Đăng Xuất
             </button>
             <Link href="/" className="flex items-center justify-center gap-2 w-full py-3 bg-stone-800 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-stone-700 transition-colors text-white text-center">

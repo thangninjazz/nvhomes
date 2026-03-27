@@ -6,6 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5232/api';
 // Khởi tạo instance của Axios
 export const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // Quan trọng để gửi nhận HttpOnly Cookie
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,12 +23,7 @@ export const setAuthToken = (token: string | null) => {
 
 // Interceptor: Tự động đính kèm Token JWT vào mỗi Request nếu có
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
+  // Không cần đính kèm Bearer token từ localStorage nữa vì đã dùng HttpOnly Cookie
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -38,9 +34,8 @@ api.interceptors.response.use((response) => response, (error) => {
   if (error.response?.status === 401) {
     // Nếu token hết hạn hoặc lỗi xác thực -> Đăng xuất người dùng
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/admin/login';
+      localStorage.removeItem('user'); // Chỉ xóa thông tin user, cookie sẽ tự hết hạn hoặc được xóa khi logout
+      window.location.href = '/nv-admin-portal/login';
     }
   }
   return Promise.reject(error);
