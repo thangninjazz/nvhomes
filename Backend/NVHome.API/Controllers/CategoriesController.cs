@@ -15,6 +15,7 @@ public class CategoriesController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IMemoryCache _cache;
     private const string CategoryTreeCacheKey = "CategoryTree_";
+    private const string CategoryCacheVersionKey = "Category_Version";
 
     public CategoriesController(ApplicationDbContext context, IMemoryCache cache)
     {
@@ -24,19 +25,20 @@ public class CategoriesController : ControllerBase
 
     private void ClearCategoryCache()
     {
-        // Xóa cache cho mọi type (Lowercase để đồng bộ)
-        _cache.Remove($"{CategoryTreeCacheKey}product_true");
-        _cache.Remove($"{CategoryTreeCacheKey}product_false");
-        _cache.Remove($"{CategoryTreeCacheKey}project_true");
-        _cache.Remove($"{CategoryTreeCacheKey}project_false");
+        // Tăng version của cache để vô hiệu hóa tất cả cache cũ cùng lúc (Versioning strategy)
+        _cache.TryGetValue(CategoryCacheVersionKey, out int currentVersion);
+        _cache.Set(CategoryCacheVersionKey, currentVersion + 1);
     }
 
     // Lấy Menu theo dạng Tree (Đa cấp) đệ quy
     [HttpGet("tree")]
     public async Task<IActionResult> GetMenuTree([FromQuery] string type = "product", [FromQuery] bool includeHidden = false)
     {
+        // Lấy version hiện tại của cache
+        _cache.TryGetValue(CategoryCacheVersionKey, out int currentVersion);
+
         var normalizedType = (type ?? "product").ToLowerInvariant();
-        var cacheKey = $"{CategoryTreeCacheKey}{normalizedType}_{includeHidden}";
+        var cacheKey = $"{CategoryTreeCacheKey}{normalizedType}_{includeHidden}_v{currentVersion}";
         
         if (_cache.TryGetValue(cacheKey, out List<CategoryResponse>? cachedTree))
         {
