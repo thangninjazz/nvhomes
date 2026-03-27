@@ -66,20 +66,18 @@ namespace NVHome.Infrastructure.Helpers
                 var font = GetWatermarkFont(image.Width);
                 string watermarkText = "nvhomes.vn - 0966.245.396";
                 
-                var options = new TextOptions(font)
-                {
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Bottom,
-                };
-
                 // Tính toán vị trí (cách lề 2% chiều rộng/cao)
-                float paddingX = image.Width * 0.02f;
-                float paddingY = image.Height * 0.02f;
+                // Ước tính chiều rộng văn bản dựa trên font size (khoảng 0.6 * fontSize per char)
+                float fontSize = font.Size;
+                float textWidthEstimate = watermarkText.Length * fontSize * 0.6f;
+                
+                float paddingX = image.Width * 0.02f + textWidthEstimate;
+                float paddingY = image.Height * 0.02f + fontSize;
                 var position = new PointF(image.Width - paddingX, image.Height - paddingY);
 
                 image.Mutate(x => x.DrawText(
-                    options,
                     watermarkText,
+                    font,
                     Color.White.WithAlpha(0.4f), // Độ mờ 40%
                     position
                 ));
