@@ -22,6 +22,10 @@ RUN dotnet publish "NVHome.API.csproj" -c Release -o /app/publish /p:UseAppHost=
 # Stage 3: Final Runtime Image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+
+# Install fonts for ImageSharp.Drawing
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app/publish .
 
 # Environment variables
