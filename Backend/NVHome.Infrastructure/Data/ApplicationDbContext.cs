@@ -49,5 +49,12 @@ public class ApplicationDbContext : DbContext
             .WithMany(c => c.Children)
             .HasForeignKey(c => c.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Mỗi dự án thuộc về một danh mục (Hạng mục)
+        modelBuilder.Entity<Project>()
+            .HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
