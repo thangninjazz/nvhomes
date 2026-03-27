@@ -68,19 +68,20 @@ public class CategoriesController : ControllerBase
 
         var categories = await query
             .OrderBy(c => c.OrderIndex)
-            .Select(c => new CategoryResponse
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Slug = c.Slug,
-                ParentId = c.ParentId,
-                OrderIndex = c.OrderIndex,
-                IsVisible = c.IsVisible,
-                Type = c.Type.ToString()
-            })
             .ToListAsync();
 
-        return Ok(categories);
+        var response = categories.Select(c => new CategoryResponse
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Slug = c.Slug,
+            ParentId = c.ParentId,
+            OrderIndex = c.OrderIndex,
+            IsVisible = c.IsVisible,
+            Type = c.Type.ToString()
+        }).ToList();
+
+        return Ok(response);
     }
 
     [Authorize(Roles = "Admin,Editor")]
