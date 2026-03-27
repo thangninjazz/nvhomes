@@ -24,6 +24,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=nvhomedb;Username=postgres;Password=${DB_PASSWORD:-password}
+    volumes:
+      - backend_uploads:/app/wwwroot/uploads
     depends_on:
       - db
     networks:
@@ -53,3 +55,4 @@ networks:
 
 volumes:
   postgres_data:
+  backend_uploads:

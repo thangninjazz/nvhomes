@@ -43,10 +43,18 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection(); // Tạm tắt để fix lỗi gọi API HTTP local mượt mà hơn
 app.UseCors("AllowAll");
+app.UseStaticFiles(); // Cho phép truy cập file trong wwwroot (ảnh đã upload)
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Đảm bảo thư mục uploads tồn tại
+var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
 
 // Tự động Apply Database Migrations khi start app
 using (var scope = app.Services.CreateScope())

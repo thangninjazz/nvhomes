@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
+import { ImageUpload } from "@/components/common/ImageUpload";
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -265,15 +266,11 @@ export default function ProductManager() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Link Hình Ảnh (URL)</label>
-            <input 
-              type="text" 
-              className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
-              value={formData.images}
-              onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-            />
-          </div>
+          <ImageUpload 
+            label="Hình Ảnh Sản Phẩm"
+            value={formData.images}
+            onChange={(url) => setFormData({ ...formData, images: url })}
+          />
 
           <div>
             <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Mô Tả Sản Phẩm</label>
