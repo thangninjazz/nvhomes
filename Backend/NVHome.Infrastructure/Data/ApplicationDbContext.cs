@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using NVHome.Domain.Entities;
 
 namespace NVHome.Infrastructure.Data;
@@ -8,6 +9,12 @@ public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // EF Core 9: Bỏ qua cảnh báo model thay đổi chưa được tạo migration khi chạy tự động
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 
     public DbSet<User> Users { get; set; }
