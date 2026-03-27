@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NVHome.Domain.Entities;
@@ -8,6 +9,7 @@ namespace NVHome.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class CrmController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
