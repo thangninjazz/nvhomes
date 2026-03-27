@@ -11,4 +11,4 @@ Dự án được triển khai bằng Docker và tự động hóa qua GitHub Ac
 - **Database**: PostgreSQL (Port 5432)
 
 ---
-*Version: 1.0.1 (CI/CD Tested)*
+*Version: 1.0.0 (Stable Production)*
