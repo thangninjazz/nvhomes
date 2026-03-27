@@ -48,10 +48,6 @@ public class CategoriesController : ControllerBase
         {
             catType = CategoryType.Product;
         }
-        if (!Enum.TryParse<CategoryType>(type, true, out var catType))
-        {
-            catType = CategoryType.Product;
-        }
 
         // Lấy tất cả các Category thuộc Type tương ứng (Lọc theo IsVisible nếu không includeHidden)
         var query = _context.Categories.Where(c => c.Type == catType);
