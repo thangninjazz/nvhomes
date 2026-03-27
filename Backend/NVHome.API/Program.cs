@@ -11,6 +11,7 @@ using System.Threading.RateLimiting;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+// CI/CD Auto-deploy verification comment
 
 // Cấu hình Serilog để ghi log ra Console và File (Rolling Daily)
 Log.Logger = new LoggerConfiguration()
