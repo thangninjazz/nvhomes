@@ -5,9 +5,9 @@ import dynamic from "next/dynamic";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
 import { MultiImageUpload } from "@/components/common/MultiImageUpload";
-import "react-quill/dist/quill.snow.css"; // Sử dụng react-quill chuẩn đã install
+import "react-quill-new/dist/quill.snow.css"; 
 
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -120,28 +120,34 @@ export default function ProductManager() {
   };
 
   const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
-    const newSpecs = [...formData.specifications];
-    newSpecs[index][field] = value;
-    setFormData({ ...formData, specifications: newSpecs });
-  };
-
-  const addFeature = () => {
-    setFormData({
-      ...formData,
-      features: [...formData.features, ""]
+    setFormData(prev => {
+      const newSpecs = [...prev.specifications];
+      newSpecs[index] = { ...newSpecs[index], [field]: value };
+      return { ...prev, specifications: newSpecs };
     });
   };
 
+  const addFeature = () => {
+    setFormData(prev => ({
+      ...prev,
+      features: [...prev.features, ""]
+    }));
+  };
+
   const removeFeature = (index: number) => {
-    const newFeatures = [...formData.features];
-    newFeatures.splice(index, 1);
-    setFormData({ ...formData, features: newFeatures });
+    setFormData(prev => {
+      const newFeatures = [...prev.features];
+      newFeatures.splice(index, 1);
+      return { ...prev, features: newFeatures };
+    });
   };
 
   const updateFeature = (index: number, value: string) => {
-    const newFeatures = [...formData.features];
-    newFeatures[index] = value;
-    setFormData({ ...formData, features: newFeatures });
+    setFormData(prev => {
+      const newFeatures = [...prev.features];
+      newFeatures[index] = value;
+      return { ...prev, features: newFeatures };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
