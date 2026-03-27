@@ -15,6 +15,7 @@ interface NavLink {
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [categories, setCategories] = useState<any[]>([])
+  const [expandedParent, setExpandedParent] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTree = async () => {
@@ -116,25 +117,38 @@ export function Header() {
  
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="lg:hidden py-6 border-t border-border">
-            <nav className="flex flex-col gap-4">
+          <div className="lg:hidden py-6 border-t border-border bg-background">
+            <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
-                <div key={link.label} className="flex flex-col">
-                  <Link
-                    href={link.href}
-                    onClick={() => !link.children && setIsOpen(false)}
-                    className="text-lg py-2 text-muted-foreground hover:text-foreground transition-colors font-medium"
-                  >
-                    {link.label}
-                  </Link>
-                  {link.children && link.children.length > 0 && (
-                    <div className="pl-4 flex flex-col gap-2 border-l border-border mt-1 mb-4">
+                <div key={link.label} className="flex flex-col px-2">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={link.href}
+                      onClick={() => !link.children && setIsOpen(false)}
+                      className="text-lg py-3 text-foreground/80 hover:text-primary transition-colors font-bold flex-1"
+                    >
+                      {link.label}
+                    </Link>
+                    {link.children && link.children.length > 0 && (
+                      <button 
+                        onClick={() => setExpandedParent(expandedParent === link.label ? null : link.label)}
+                        className="p-3 text-muted-foreground hover:text-primary transition-all rounded-full hover:bg-secondary"
+                      >
+                        <span className={`inline-block transition-transform duration-300 ${expandedParent === link.label ? 'rotate-180' : ''}`}>
+                          ▼
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {link.children && link.children.length > 0 && expandedParent === link.label && (
+                    <div className="pl-6 flex flex-col gap-3 border-l-2 border-primary/20 mt-1 mb-4 animate-in slide-in-from-top-2 duration-300">
                       {link.children.map(child => (
                         <Link
                           key={child.label}
                           href={child.href}
                           onClick={() => setIsOpen(false)}
-                          className="text-sm py-1 text-muted-foreground hover:text-foreground"
+                          className="text-sm py-2 text-muted-foreground hover:text-primary font-medium border-b border-border/30 last:border-0"
                         >
                           {child.label}
                         </Link>
@@ -143,9 +157,13 @@ export function Header() {
                   )}
                 </div>
               ))}
-              <Link href="#contact" onClick={() => setIsOpen(false)}>
-                <Button className="rounded-none mt-4 w-full">Nhận báo giá</Button>
-              </Link>
+              <div className="px-2 mt-6">
+                <Link href="#contact" onClick={() => setIsOpen(false)}>
+                  <Button className="rounded-none w-full py-6 text-lg font-black uppercase tracking-widest">
+                    Nhận báo giá ngay
+                  </Button>
+                </Link>
+              </div>
             </nav>
           </div>
         )}

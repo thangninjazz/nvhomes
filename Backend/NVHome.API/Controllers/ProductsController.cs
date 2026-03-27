@@ -27,14 +27,32 @@ public class ProductsController : ControllerBase
     {
         var query = _context.Products.Include(p => p.Category).AsQueryable();
 
-        // 1. Lọc theo danh mục
-        if (categoryId.HasValue)
+        // 1. Lọc theo danh mục (Hỗ trợ đệ quy lấy cả con nếu là cha)
+        if (categoryId.HasValue || !string.IsNullOrEmpty(categorySlug))
         {
-            query = query.Where(p => p.CategoryId == categoryId.Value);
-        }
-        else if (!string.IsNullOrEmpty(categorySlug))
-        {
-            query = query.Where(p => p.Category != null && p.Category.Slug == categorySlug);
+            var category = categoryId.HasValue 
+                ? await _context.Categories.FindAsync(categoryId.Value)
+                : await _context.Categories.FirstOrDefaultAsync(c => c.Slug == categorySlug);
+
+            if (category != null)
+            {
+                // Lấy tất cả IDs của các danh mục con (đệ quy đơn giản bằng cách fetch hết về và xử lý)
+                var allCategories = await _context.Categories.ToListAsync();
+                var descendantIds = new List<Guid> { category.Id };
+                
+                void AddChildren(Guid parentId)
+                {
+                    var children = allCategories.Where(c => c.ParentId == parentId).Select(c => c.Id).ToList();
+                    foreach (var childId in children)
+                    {
+                        descendantIds.Add(childId);
+                        AddChildren(childId);
+                    }
+                }
+                
+                AddChildren(category.Id);
+                query = query.Where(p => descendantIds.Contains(p.CategoryId));
+            }
         }
 
         // 2. Sắp xếp (Sorting) dynamic

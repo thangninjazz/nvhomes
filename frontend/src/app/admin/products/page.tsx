@@ -23,6 +23,9 @@ export default function ProductManager() {
     images: [] as string[] // Chuyển thành mảng để dùng MultiImageUpload
   });
 
+  const [categoryTree, setCategoryTree] = useState<any[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -39,9 +42,10 @@ export default function ProductManager() {
 
   const fetchCategories = async () => {
     try {
-      // Chỉ lấy hạng mục thuộc loại Product
       const res = await api.get('/categories/tree?type=Product');
-      // Làm phẳng cây danh mục để chọn trong dropdown
+      setCategoryTree(res.data || []);
+      
+      // Khởi tạo flattened categories cho việc hiển thị tên trong bảng
       const flattened: any[] = [];
       const flatten = (items: any[]) => {
         items.forEach(cat => {
@@ -66,11 +70,17 @@ export default function ProductManager() {
   const openAddModal = () => {
     setEditingItem(null);
     setFormData({ name: "", slug: "", categoryId: "", originalPrice: 0, discountPrice: 0, description: "", images: [] });
+    setSelectedParentId("");
     setIsModalOpen(true);
   };
 
   const openEditModal = (item: any) => {
     setEditingItem(item);
+    
+    // Tìm ParentId của category hiện tại
+    const currentCat = categories.find(c => c.id === item.categoryId);
+    setSelectedParentId(currentCat?.parentId || "");
+
     setFormData({
       name: item.name,
       slug: item.slug,
@@ -86,14 +96,14 @@ export default function ProductManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.categoryId) {
-      alert("Vui lòng chọn danh mục.");
+      alert("Vui lòng chọn danh mục con.");
       return;
     }
 
     try {
       const dataToSend = {
         ...formData,
-        images: formData.images.join(',') // Join lại thành chuỗi CSV cho Backend
+        images: formData.images.join(',')
       };
 
       if (editingItem) {
@@ -237,16 +247,34 @@ export default function ProductManager() {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục</label>
+              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục Chính</label>
               <select 
                 required
                 className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
+                value={selectedParentId}
+                onChange={(e) => {
+                  setSelectedParentId(e.target.value);
+                  setFormData({ ...formData, categoryId: "" }); // Reset sub-category
+                }}
+              >
+                <option value="">Chọn danh mục chính...</option>
+                {categoryTree.filter(cat => !cat.parentId).map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục Con</label>
+              <select 
+                required
+                disabled={!selectedParentId}
+                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold disabled:opacity-50"
                 value={formData.categoryId}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               >
-                <option value="">Chọn danh mục...</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option value="">Chọn danh mục con...</option>
+                {categoryTree.find(c => c.id === selectedParentId)?.children?.map((sub: any) => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
                 ))}
               </select>
             </div>
