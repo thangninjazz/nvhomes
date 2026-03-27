@@ -30,7 +30,7 @@ export function HeroSection() {
           </h1>
           
           <p className="text-lg md:text-xl text-background/90 mb-12 max-w-xl leading-relaxed">
-            Thiết kế sáng tạo — Thi công tận tâm — Chất lượng từ tâm. Sở hữu không gian sống mơ ước với chi phí tối ưu.
+            Thiết kế sáng tạo — Thi công chuyên nghiệp — Chất lượng từ tâm. Sở hữu không gian sống mơ ước với chi phí tối ưu.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
