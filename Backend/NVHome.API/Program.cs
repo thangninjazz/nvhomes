@@ -64,6 +64,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Đăng ký dịch vụ từ Infrastructure (JWT, Hashing...)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Thêm dịch vụ Antiforgery để bảo vệ các request thay đổi dữ liệu (POST/PUT/DELETE)
+builder.Services.AddAntiforgery(options => 
+{
+    options.HeaderName = "X-XSRF-TOKEN"; // Frontend sẽ gửi token qua header này
+    options.Cookie.Name = "XSRF-TOKEN";
+    options.Cookie.HttpOnly = false; // Phải để false để JS có thể đọc và gửi lại qua header
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
 var app = builder.Build();
 
 // Cấu hình Http Request Pipeline
@@ -104,6 +113,7 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/api/uploads"
 });
 
+app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 
