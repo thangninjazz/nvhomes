@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, Inter } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 import './globals.css'
 
 const playfair = Playfair_Display({ 
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 import { ThemeProvider } from '@/components/landing/theme-provider'
 import { ThemeToggleFixed } from '@/components/landing/theme-toggle-fixed'
 import { FloatingCTA } from '@/components/landing/floating-cta'
+import { AntiCopy } from '@/components/security/anti-copy'
 
 export default function RootLayout({
   children,
@@ -57,8 +59,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <AntiCopy />
           <ThemeToggleFixed />
           <Analytics />
+          <Script 
+            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ld-YOUR-SITE-KEY'}`} 
+            strategy="afterInteractive" 
+          />
         </ThemeProvider>
       </body>
     </html>

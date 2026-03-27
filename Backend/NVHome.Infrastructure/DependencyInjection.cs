@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using NVHome.Application.Interfaces;
 using NVHome.Infrastructure.Authentication;
+using NVHome.Infrastructure.Services;
 
 namespace NVHome.Infrastructure;
 
@@ -16,6 +17,9 @@ public static class DependencyInjection
         // Đăng ký dịch vụ JWT và Hashing
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        
+        // Đăng ký ReCaptcha Service và HttpClient
+        services.AddHttpClient<IReCaptchaService, ReCaptchaService>();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secret = jwtSettings["Secret"];

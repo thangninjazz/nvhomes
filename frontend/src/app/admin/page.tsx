@@ -69,7 +69,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm hover:shadow-lg transition-shadow">
           <p className="text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Yêu Cầu Tư Vấn (Leads)</p>
-          <p className="text-5xl font-black text-stone-900">{loading ? "..." : stats.leads}</p>
+          <p className="text-5xl font-black text-stone-900">{crmLoading ? "..." : (crmStats?.newLeads ?? 0)}</p>
           <p className="text-sm font-bold text-stone-400 mt-4">Thông tin khách hàng từ web</p>
         </div>
         

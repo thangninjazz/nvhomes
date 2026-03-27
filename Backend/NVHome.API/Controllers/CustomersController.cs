@@ -11,10 +11,12 @@ namespace NVHome.API.Controllers;
 public class CustomersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IReCaptchaService _reCaptchaService;
 
-    public CustomersController(ApplicationDbContext context)
+    public CustomersController(ApplicationDbContext context, IReCaptchaService reCaptchaService)
     {
         _context = context;
+        _reCaptchaService = reCaptchaService;
     }
 
     // GET: api/customers
@@ -68,13 +70,25 @@ public class CustomersController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
+        // 1. Verify ReCaptcha Token (nếu có)
+        if (!string.IsNullOrEmpty(request.ReCaptchaToken))
+        {
+            var isValid = await _reCaptchaService.VerifyToken(request.ReCaptchaToken);
+            if (!isValid) return BadRequest(new { message = "Xác thực ReCaptcha thất bại." });
+        }
+
+        // 2. Sanitize dữ liệu trước khi lưu (Chống XSS/Injection)
+        var sanitizedName = SanitizeInput(request.Name ?? "");
+        var sanitizedNote = SanitizeInput(request.Note ?? "");
+        var sanitizedAddress = SanitizeInput(request.Address ?? "");
+
         var customer = new Customer
         {
-            PhoneNumber = request.PhoneNumber,
-            Name = request.Name ?? "",
-            Note = request.Note,
-            Address = request.Address,
-            Source = CustomerSource.Consultation, // Mặc định là tư vấn
+            PhoneNumber = SanitizeInput(request.PhoneNumber),
+            Name = sanitizedName,
+            Note = sanitizedNote,
+            Address = sanitizedAddress,
+            Source = CustomerSource.Consultation, 
             Status = CustomerStatus.CAN_LIEN_HE,
             CreatedAt = DateTime.UtcNow
         };
@@ -83,6 +97,19 @@ public class CustomersController : ControllerBase
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
+    }
+
+    private string SanitizeInput(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        
+        // Loại bỏ các tag HTML nguy hiểm (Chống XSS đơn giản)
+        var sanitized = System.Net.WebUtility.HtmlEncode(input);
+        
+        // Hạn chế độ dài để tránh spam buffer (SQL Injection phòng ngừa bằng EF Core tham số hóa sẵn)
+        if (sanitized.Length > 2000) sanitized = sanitized.Substring(0, 2000);
+        
+        return sanitized;
     }
 
     // GET: api/customers/{id}
@@ -129,6 +156,7 @@ public class CustomerRequest
     public string? Name { get; set; }
     public string? Note { get; set; }
     public string? Address { get; set; }
+    public string? ReCaptchaToken { get; set; } // Thêm token từ frontend
 }
 
 public class UpdateCustomerRequest

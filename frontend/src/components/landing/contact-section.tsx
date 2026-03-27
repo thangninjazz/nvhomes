@@ -48,18 +48,33 @@ export function ContactSection() {
     e.preventDefault()
     setIsSubmitting(true)
     setError("")
+    
     try {
+      // 1. Lấy Google reCAPTCHA Token (v3)
+      // Thêm script reCAPTCHA vào head nếu chưa có (thông thường nến thêm vào layout)
+      const token = await new Promise<string>((resolve) => {
+        (window as any).grecaptcha.ready(async () => {
+          const t = await (window as any).grecaptcha.execute(
+            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ld-YOUR-SITE-KEY', 
+            { action: 'contact' }
+          );
+          resolve(t);
+        });
+      });
+
+      // 2. Gửi dữ liệu kèm Token xác thực
       await api.post("/customers", {
         phoneNumber: formData.phone,
         name: formData.name,
         source: "ContactSection",
-        note: `Message: ${formData.message}`
+        note: `Message: ${formData.message}`,
+        reCaptchaToken: token // Gửi token để backend validate
       })
       setIsSuccess(true)
       setFormData({ name: "", phone: "", message: "" })
     } catch (err) {
       console.error("Error submitting form:", err)
-      setError("Gửi yêu cầu thất bại. Vui lòng thử lại hoặc gọi hotline.")
+      setError("Xác thực thất bại hoặc lỗi hệ thống. Vui lòng thử lại.")
     } finally {
       setIsSubmitting(false)
     }
