@@ -36,7 +36,7 @@ export default function AdminDashboard() {
           products: prodRes.status === 'fulfilled' ? prodRes.value.data.length : 0,
           categories: catRes.status === 'fulfilled' ? catRes.value.data.length : 0,
           projects: projRes.status === 'fulfilled' ? (Array.isArray(projRes.value.data) ? projRes.value.data.length : (projRes.value.data.value?.length || 0)) : 0,
-          leads: leadRes.status === 'fulfilled' ? (leadRes.value.data.items?.length || leadRes.value.data.length || 0) : 0
+          leads: leadRes.status === 'fulfilled' ? (leadRes.value.data.total ?? leadRes.value.data.items?.length ?? 0) : 0
         });
       } catch (err) {
         console.error("Lỗi fetch stats:", err);
@@ -48,7 +48,7 @@ export default function AdminDashboard() {
     const fetchCrmStats = async () => {
       try {
         setCrmLoading(true);
-        const res = await api.get('/dashboard/crm');
+        const res = await api.get('/crm/dashboard');
         setCrmStats(res.data);
       } catch (err) {
         console.error("Lỗi fetch CRM dashboard:", err);
