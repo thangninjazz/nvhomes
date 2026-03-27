@@ -20,7 +20,7 @@ export default function MenuManager() {
   const fetchTree = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/categories/tree?includeHidden=true');
+      const res = await api.get(`/categories/tree?includeHidden=true&t=${Date.now()}`);
       setTree(res.data);
     } catch (err: any) {
       console.error("Lỗi fetch menu:", err);
@@ -124,11 +124,6 @@ export default function MenuManager() {
               <div key={node.id} className="border border-stone-200 rounded-2xl overflow-hidden hover:border-stone-300 transition-colors bg-white">
                 <div className="p-5 flex justify-between items-center bg-stone-50/50">
                   <div className="flex items-center gap-4">
-                    <span className="cursor-grab text-stone-300 hover:text-stone-900 p-1 flex flex-col gap-1 items-center justify-center">
-                        <div className="w-4 h-0.5 bg-current rounded-full" />
-                        <div className="w-4 h-0.5 bg-current rounded-full" />
-                        <div className="w-4 h-0.5 bg-current rounded-full" />
-                    </span>
                     <span className="text-lg font-black text-stone-900 uppercase tracking-wider">{node.name}</span>
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${node.isVisible ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
                       {node.isVisible ? 'Hiển thị' : 'Đang ẩn'}
@@ -156,28 +151,13 @@ export default function MenuManager() {
                   </div>
                 </div>
                 {node.children && node.children.length > 0 && (
-                  <div className="p-4 bg-white border-t border-stone-100 space-y-2 pl-14">
-                     {node.children.map((child: any) => (
-                       <div key={child.id} className="flex justify-between items-center p-4 border border-stone-100 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-sm">
-                         <div className="flex items-center gap-4">
-                            <span className="font-bold text-stone-700">{child.name}</span>
-                         </div>
-                         <div className="flex gap-4">
-                            <button 
-                              onClick={() => openEditModal(child)}
-                              className="text-xs font-bold text-blue-600 hover:text-blue-800"
-                            >
-                              Sửa
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(child.id)}
-                              className="text-xs font-bold text-red-500 hover:text-red-700"
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                       </div>
-                     ))}
+                  <div className="p-4 bg-white border-t border-stone-100 space-y-4 pl-10 border-l-4 border-l-stone-50 ml-4">
+                     <CategoryBranch 
+                        children={node.children} 
+                        openEdit={openEditModal} 
+                        openAdd={openAddModal} 
+                        onDelete={handleDelete} 
+                     />
                   </div>
                 )}
               </div>
@@ -256,6 +236,41 @@ export default function MenuManager() {
           </div>
         </form>
       </Modal>
+    </div>
+  );
+}
+
+function CategoryBranch({ children, openEdit, openAdd, onDelete }: any) {
+  return (
+    <div className="space-y-3">
+      {children.map((child: any) => (
+        <div key={child.id} className="space-y-3">
+          <div className="flex justify-between items-center p-4 border border-stone-100 rounded-2xl bg-stone-50/30 hover:bg-stone-50 transition-all shadow-sm group">
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-stone-300 group-hover:bg-stone-900 transition-colors" />
+              <div>
+                <p className="font-bold text-stone-800">{child.name}</p>
+                {!child.isVisible && <span className="text-[9px] font-black text-red-400 uppercase tracking-widest">Đang ẩn</span>}
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => openAdd(child.id)} className="text-[10px] font-black text-stone-400 hover:text-stone-900 uppercase">Thêm Con</button>
+              <button onClick={() => openEdit(child)} className="text-[10px] font-black text-blue-500 hover:text-blue-700 uppercase">Sửa</button>
+              <button onClick={() => onDelete(child.id)} className="text-[10px] font-black text-red-400 hover:text-red-600 uppercase">Xóa</button>
+            </div>
+          </div>
+          {child.children && child.children.length > 0 && (
+            <div className="pl-8 border-l-2 border-stone-100/50 ml-5">
+              <CategoryBranch 
+                children={child.children} 
+                openEdit={openEdit} 
+                openAdd={openAdd} 
+                onDelete={onDelete} 
+              />
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

@@ -41,7 +41,7 @@ export default function ProjectManager() {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get('/categories?type=Project');
+      const res = await api.get(`/categories?type=Project&t=${Date.now()}`);
       setCategories(res.data || []);
     } catch (err) {
       console.error("Lỗi fetch categories:", err);

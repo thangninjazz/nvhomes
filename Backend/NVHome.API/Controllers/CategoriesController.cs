@@ -24,18 +24,19 @@ public class CategoriesController : ControllerBase
 
     private void ClearCategoryCache()
     {
-        // Xóa cache cho mọi type và trạng thái ẩn/hiện
-        _cache.Remove($"{CategoryTreeCacheKey}Product_true");
-        _cache.Remove($"{CategoryTreeCacheKey}Product_false");
-        _cache.Remove($"{CategoryTreeCacheKey}Project_true");
-        _cache.Remove($"{CategoryTreeCacheKey}Project_false");
+        // Xóa cache cho mọi type (Lowercase để đồng bộ)
+        _cache.Remove($"{CategoryTreeCacheKey}product_true");
+        _cache.Remove($"{CategoryTreeCacheKey}product_false");
+        _cache.Remove($"{CategoryTreeCacheKey}project_true");
+        _cache.Remove($"{CategoryTreeCacheKey}project_false");
     }
 
     // Lấy Menu theo dạng Tree (Đa cấp) đệ quy
     [HttpGet("tree")]
-    public async Task<IActionResult> GetMenuTree([FromQuery] string type = "Product", [FromQuery] bool includeHidden = false)
+    public async Task<IActionResult> GetMenuTree([FromQuery] string type = "product", [FromQuery] bool includeHidden = false)
     {
-        var cacheKey = $"{CategoryTreeCacheKey}{type}_{includeHidden}";
+        var normalizedType = (type ?? "product").ToLowerInvariant();
+        var cacheKey = $"{CategoryTreeCacheKey}{normalizedType}_{includeHidden}";
         
         if (_cache.TryGetValue(cacheKey, out List<CategoryResponse>? cachedTree))
         {
@@ -43,6 +44,10 @@ public class CategoriesController : ControllerBase
         }
 
         // Chuyển đổi string sang Enum
+        if (!Enum.TryParse<CategoryType>(normalizedType, true, out var catType))
+        {
+            catType = CategoryType.Product;
+        }
         if (!Enum.TryParse<CategoryType>(type, true, out var catType))
         {
             catType = CategoryType.Product;

@@ -22,7 +22,7 @@ export default function ProjectCategoryManager() {
     try {
       setLoading(true);
       // Fetch specifically for Project type
-      const res = await api.get('/categories/tree?type=Project&includeHidden=true');
+      const res = await api.get(`/categories/tree?type=Project&includeHidden=true&t=${Date.now()}`);
       setTree(res.data);
     } catch (err: any) {
       console.error("Lỗi fetch hạng mục dự án:", err);
@@ -151,28 +151,13 @@ export default function ProjectCategoryManager() {
                   </div>
                 </div>
                 {node.children && node.children.length > 0 && (
-                  <div className="p-4 bg-white border-t border-stone-100 space-y-2 pl-14">
-                     {node.children.map((child: any) => (
-                       <div key={child.id} className="flex justify-between items-center p-4 border border-stone-100 rounded-xl bg-white hover:bg-stone-50 transition-colors shadow-sm">
-                         <div className="flex items-center gap-4">
-                            <span className="font-bold text-stone-700">{child.name}</span>
-                         </div>
-                         <div className="flex gap-4">
-                            <button 
-                              onClick={() => openEditModal(child)}
-                              className="text-xs font-bold text-blue-600"
-                            >
-                              Sửa
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(child.id)}
-                              className="text-xs font-bold text-red-500"
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                       </div>
-                     ))}
+                  <div className="p-4 bg-white border-t border-stone-100 space-y-4 pl-10 border-l-4 border-l-red-50 ml-4">
+                     <CategoryBranch 
+                        children={node.children} 
+                        openEdit={openEditModal} 
+                        openAdd={openAddModal} 
+                        onDelete={handleDelete} 
+                     />
                   </div>
                 )}
               </div>
@@ -251,6 +236,41 @@ export default function ProjectCategoryManager() {
           </div>
         </form>
       </Modal>
+    </div>
+  );
+}
+
+function CategoryBranch({ children, openEdit, openAdd, onDelete }: any) {
+  return (
+    <div className="space-y-3">
+      {children.map((child: any) => (
+        <div key={child.id} className="space-y-3">
+          <div className="flex justify-between items-center p-4 border border-stone-100 rounded-2xl bg-stone-50/30 hover:bg-stone-50 transition-all shadow-sm group">
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-red-300 group-hover:bg-red-600 transition-colors" />
+              <div>
+                <p className="font-bold text-stone-800">{child.name}</p>
+                {!child.isVisible && <span className="text-[9px] font-black text-red-400 uppercase tracking-widest">Đang ẩn</span>}
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => openAdd(child.id)} className="text-[10px] font-black text-stone-400 hover:text-stone-900 uppercase">Thêm Con</button>
+              <button onClick={() => openEdit(child)} className="text-[10px] font-black text-blue-500 hover:text-blue-700 uppercase">Sửa</button>
+              <button onClick={() => onDelete(child.id)} className="text-[10px] font-black text-red-400 hover:text-red-600 uppercase">Xóa</button>
+            </div>
+          </div>
+          {child.children && child.children.length > 0 && (
+            <div className="pl-8 border-l-2 border-red-100/50 ml-5">
+              <CategoryBranch 
+                children={child.children} 
+                openEdit={openEdit} 
+                openAdd={openAdd} 
+                onDelete={onDelete} 
+              />
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
