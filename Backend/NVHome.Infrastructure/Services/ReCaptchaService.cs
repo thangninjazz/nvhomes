@@ -38,7 +38,8 @@ namespace NVHome.Infrastructure.Services
             var jsonString = await response.Content.ReadAsStringAsync();
             _logger.LogInformation("ReCaptcha Response: {Json}", jsonString);
             
-            var result = JsonSerializer.Deserialize<ReCaptchaResponse>(jsonString);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<ReCaptchaResponse>(jsonString, options);
 
             if (result == null || !result.Success)
             {
