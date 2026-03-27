@@ -8,6 +8,7 @@ namespace NVHome.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/crm")] // Alias to match frontend call /api/crm/dashboard
 [Authorize(Roles = "Admin")]
 public class DashboardController : ControllerBase
 {
@@ -18,7 +19,7 @@ public class DashboardController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("crm")]
+    [HttpGet("dashboard")] // This combined with Route("api/crm") gives /api/crm/dashboard
     public async Task<IActionResult> GetCrmStats()
     {
         var totalCustomers = await _context.Customers.CountAsync();

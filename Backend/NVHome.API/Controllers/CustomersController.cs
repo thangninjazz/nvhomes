@@ -23,13 +23,25 @@ public class CustomersController : ControllerBase
         _telegramService = telegramService;
     }
 
-    // GET: api/customers - Lấy danh sách khách hàng cho CRM
+    // GET: api/customers - Lấy danh sách khách hàng cho CRM (Phân trang & Tìm kiếm)
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+    public async Task<IActionResult> GetCustomers([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        return await _context.Customers
+        var query = _context.Customers.AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(c => c.PhoneNumber.Contains(search) || (c.Name != null && c.Name.Contains(search)));
+        }
+
+        var total = await query.CountAsync();
+        var items = await query
             .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return Ok(new { items, total });
     }
 
     // GET: api/customers/export - Xuất file CSV
