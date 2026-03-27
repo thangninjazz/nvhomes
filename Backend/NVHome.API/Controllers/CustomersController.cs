@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NVHome.Domain.Entities;
 using NVHome.Infrastructure.Data;
 using System.Text;
+using NVHome.Infrastructure.Services;
 
 namespace NVHome.API.Controllers;
 

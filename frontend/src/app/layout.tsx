@@ -63,7 +63,7 @@ export default function RootLayout({
           <ThemeToggleFixed />
           <Analytics />
           <Script 
-            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ld-YOUR-SITE-KEY'}`} 
+            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ldx95ksAAAAAJyG9NvRfD0NVvzPSJa8GKhwkkSb'}`} 
             strategy="afterInteractive" 
           />
         </ThemeProvider>

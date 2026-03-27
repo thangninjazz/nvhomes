@@ -55,7 +55,7 @@ export function ContactSection() {
       const token = await new Promise<string>((resolve) => {
         (window as any).grecaptcha.ready(async () => {
           const t = await (window as any).grecaptcha.execute(
-            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ld-YOUR-SITE-KEY', 
+            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ldx95ksAAAAAJyG9NvRfD0NVvzPSJa8GKhwkkSb', 
             { action: 'contact' }
           );
           resolve(t);
