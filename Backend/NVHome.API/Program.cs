@@ -3,6 +3,8 @@ using NVHome.Infrastructure.Data;
 using NVHome.Infrastructure;
 using NVHome.Application.Interfaces;
 using NVHome.Domain.Entities;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,14 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+// Cấu hình ForwardedHeaders để nhận diện HTTPS từ Proxy (Nginx)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -42,19 +52,27 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection(); // Tạm tắt để fix lỗi gọi API HTTP local mượt mà hơn
+app.UseForwardedHeaders(); // Cần thiết để nhận diện proto từ Nginx
 app.UseCors("AllowAll");
-app.UseStaticFiles(); // Cho phép truy cập file trong wwwroot (ảnh đã upload)
+
+// Đảm bảo thư mục uploads tồn tại
+var uploadsDir = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
+if (!Directory.Exists(uploadsDir))
+{
+    Directory.CreateDirectory(uploadsDir);
+}
+
+// Cấu hình để truy cập ảnh qua đường dẫn /api/uploads/xxx.webp
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsDir),
+    RequestPath = "/api/uploads"
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// Đảm bảo thư mục uploads tồn tại
-var uploadsPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
 
 // Tự động Apply Database Migrations khi start app
 using (var scope = app.Services.CreateScope())
