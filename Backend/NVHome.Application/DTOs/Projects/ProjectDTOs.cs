@@ -11,6 +11,7 @@ public class CreateProjectRequest
     public string? Tags { get; set; }
     public string? VideoUrl { get; set; } // YouTube / File MP4
     public string? Thumbnail { get; set; }
+    public Guid? CategoryId { get; set; }
     public List<string> Gallery { get; set; } = new();
     public List<Guid> RelatedProductIds { get; set; } = new();
 }
@@ -25,6 +26,8 @@ public class ProjectResponse
     public string? Tags { get; set; }
     public string? VideoUrl { get; set; }
     public string? Thumbnail { get; set; }
+    public Guid? CategoryId { get; set; }
+    public string? CategoryName { get; set; }
     public List<string> Gallery { get; set; } = new();
     public List<RelatedProductDTO> RelatedProducts { get; set; } = new();
     public DateTime CreatedAt { get; set; }

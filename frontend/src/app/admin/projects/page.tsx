@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
 import { ImageUpload } from "@/components/common/ImageUpload";
+import { MultiImageUpload } from "@/components/common/MultiImageUpload";
 
 export default function ProjectManager() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -18,7 +20,9 @@ export default function ProjectManager() {
     videoUrl: "",
     description: "",
     content: "",
-    images: ""
+    thumbnail: "",
+    gallery: [] as string[],
+    categoryId: ""
   });
 
   const fetchProjects = async () => {
@@ -35,13 +39,26 @@ export default function ProjectManager() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories');
+      setCategories(res.data || []);
+    } catch (err) {
+      console.error("Lỗi fetch categories:", err);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchCategories();
   }, []);
 
   const openAddModal = () => {
     setEditingItem(null);
-    setFormData({ title: "", slug: "", tags: "", videoUrl: "", description: "", content: "", images: "" });
+    setFormData({ 
+      title: "", slug: "", tags: "", videoUrl: "", description: "", content: "", 
+      thumbnail: "", gallery: [], categoryId: "" 
+    });
     setIsModalOpen(true);
   };
 
@@ -54,7 +71,9 @@ export default function ProjectManager() {
       videoUrl: item.videoUrl || "",
       description: item.description || "",
       content: item.content || "",
-      images: item.images || ""
+      thumbnail: item.thumbnail || "",
+      gallery: item.gallery || [],
+      categoryId: item.categoryId || ""
     });
     setIsModalOpen(true);
   };
@@ -127,7 +146,12 @@ export default function ProjectManager() {
                     )}
                 </div>
                 <div className="p-8 flex-1 flex flex-col">
-                    <span className="text-[10px] font-black text-stone-400 border border-stone-200 px-3 py-1 rounded-md uppercase tracking-widest self-start mb-4 bg-stone-50">{p.tags}</span>
+                    <div className="flex gap-2 mb-4">
+                        {p.categoryName && (
+                          <span className="text-[10px] font-black text-white bg-red-600 px-3 py-1 rounded-md uppercase tracking-widest">{p.categoryName}</span>
+                        )}
+                        <span className="text-[10px] font-black text-stone-400 border border-stone-200 px-3 py-1 rounded-md uppercase tracking-widest bg-stone-50">{p.tags}</span>
+                    </div>
                     <h3 className="text-xl font-black text-stone-900 mb-6 line-clamp-2 leading-snug">{p.title}</h3>
                     
                     <div className="flex justify-between items-center pt-6 border-t border-stone-100 mt-auto">
@@ -191,10 +215,31 @@ export default function ProjectManager() {
             </div>
           </div>
 
-          <ImageUpload 
-            label="Hình Ảnh Đại Diện"
-            value={formData.images}
-            onChange={(url) => setFormData({ ...formData, images: url })}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ImageUpload 
+              label="Hình Ảnh Đại Diện (Thumbnail)"
+              value={formData.thumbnail}
+              onChange={(url) => setFormData({ ...formData, thumbnail: url })}
+            />
+            <div>
+              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Hạng mục Dự Án</label>
+              <select 
+                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold appearance-none cursor-pointer"
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+              >
+                <option value="">-- Chọn Hạng Mục --</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <MultiImageUpload 
+            label="Bộ Sưu Tập Ảnh Chi Tiết (Gallery)"
+            value={formData.gallery}
+            onChange={(urls) => setFormData({ ...formData, gallery: urls })}
           />
 
           <div>

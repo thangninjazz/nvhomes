@@ -6,21 +6,32 @@ import Link from "next/link";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/projects');
-        setProjects(res.data);
+        setLoading(true);
+        const [projRes, catRes] = await Promise.all([
+          api.get('/projects'),
+          api.get('/categories')
+        ]);
+        setProjects(projRes.data);
+        setCategories(catRes.data || []);
       } catch (err) {
-        console.error("Lỗi tải dự án:", err);
+        console.error("Lỗi tải dữ liệu:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
+    fetchData();
   }, []);
+
+  const filteredProjects = selectedCategory === "all" 
+    ? projects 
+    : projects.filter(p => p.categoryId === selectedCategory);
 
   return (
     <div className="bg-white min-h-screen py-24 mt-10">
@@ -36,6 +47,29 @@ export default function ProjectsPage() {
           </p>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-4 mb-16">
+          <button 
+            onClick={() => setSelectedCategory("all")}
+            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+              selectedCategory === "all" ? 'bg-stone-900 text-white shadow-xl translate-y-[-2px]' : 'bg-stone-50 text-stone-400 hover:bg-stone-100'
+            }`}
+          >
+            Tất cả
+          </button>
+          {categories.map(cat => (
+            <button 
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                selectedCategory === cat.id ? 'bg-stone-900 text-white shadow-xl translate-y-[-2px]' : 'bg-stone-50 text-stone-400 hover:bg-stone-100'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {[1, 2, 3, 4].map(i => (
@@ -48,7 +82,7 @@ export default function ProjectsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20">
-            {projects.map((p, idx) => (
+            {filteredProjects.map((p, idx) => (
               <Link key={p.id} href={`/projects/${p.slug}`} className="group block">
                 <div className="relative aspect-[16/9] rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl shadow-stone-200/50">
                   <img 

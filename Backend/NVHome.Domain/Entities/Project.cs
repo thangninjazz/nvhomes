@@ -23,6 +23,9 @@ public class Project : BaseEntity
     public string? Thumbnail { get; set; }
 
     // === RELATIONSHIPS ===
+    public Guid? CategoryId { get; set; }
+    public Category? Category { get; set; }
+    
     public ICollection<ProjectImage> ProjectImages { get; set; } = new List<ProjectImage>();
     public ICollection<ProjectProduct> ProjectProducts { get; set; } = new List<ProjectProduct>();
 }

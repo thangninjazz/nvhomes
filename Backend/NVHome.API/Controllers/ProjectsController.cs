@@ -22,6 +22,7 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> GetProjects()
     {
         var projects = await _context.Projects
+            .Include(p => p.Category)
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new ProjectResponse
             {
@@ -29,6 +30,8 @@ public class ProjectsController : ControllerBase
                 Description = p.Description, Content = p.Content,
                 Tags = p.Tags, VideoUrl = p.VideoUrl,
                 Thumbnail = p.Thumbnail,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category != null ? p.Category.Name : null,
                 CreatedAt = p.CreatedAt
             })
             .ToListAsync();
@@ -40,6 +43,7 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> GetProjectBySlug(string slug)
     {
         var p = await _context.Projects
+            .Include(x => x.Category)
             .Include(x => x.ProjectImages)
             .Include(x => x.ProjectProducts)
                 .ThenInclude(pp => pp.Product)
@@ -53,6 +57,8 @@ public class ProjectsController : ControllerBase
             Description = p.Description, Content = p.Content,
             Tags = p.Tags, VideoUrl = p.VideoUrl,
             Thumbnail = p.Thumbnail,
+            CategoryId = p.CategoryId,
+            CategoryName = p.Category != null ? p.Category.Name : null,
             Gallery = p.ProjectImages.OrderBy(i => i.OrderIndex).Select(i => i.ImageUrl).ToList(),
             RelatedProducts = p.ProjectProducts.Select(pp => new RelatedProductDTO 
             {
@@ -79,7 +85,8 @@ public class ProjectsController : ControllerBase
                 Title = request.Title, Slug = request.Slug,
                 Description = request.Description, Content = request.Content,
                 Tags = request.Tags, VideoUrl = request.VideoUrl,
-                Thumbnail = request.Thumbnail
+                Thumbnail = request.Thumbnail,
+                CategoryId = request.CategoryId
             };
 
             _context.Projects.Add(project);
@@ -129,7 +136,9 @@ public class ProjectsController : ControllerBase
             project.Title = request.Title; project.Slug = request.Slug;
             project.Description = request.Description; project.Content = request.Content;
             project.Tags = request.Tags; project.VideoUrl = request.VideoUrl;
-            project.Thumbnail = request.Thumbnail; project.UpdatedAt = DateTime.UtcNow;
+            project.Thumbnail = request.Thumbnail; 
+            project.CategoryId = request.CategoryId;
+            project.UpdatedAt = DateTime.UtcNow;
 
             // Update Gallery (Clear and Re-add)
             var oldImages = _context.ProjectImages.Where(i => i.ProjectId == id);
