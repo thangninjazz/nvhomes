@@ -29,7 +29,7 @@ export function ProjectsSection() {
         // Fetch cả projects và categories song song
         const [projectsRes, categoriesRes] = await Promise.all([
           api.get('/projects'),
-          api.get('/categories')
+          api.get('/categories?type=Project')
         ]);
 
         const dbCategories = categoriesRes.data

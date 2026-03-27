@@ -83,7 +83,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                 )}
                 <div 
                   className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
-                  style={{ backgroundImage: `url('${product.images || 'https://images.unsplash.com/photo-1532323544230-7191fd51bc1b?w=500'}')` }}
+                  style={{ backgroundImage: `url('${(product.images ? product.images.split(',')[0] : '') || 'https://images.unsplash.com/photo-1532323544230-7191fd51bc1b?w=500'}')` }}
                 />
                 
                 {/* Hover Add to Cart Button */}

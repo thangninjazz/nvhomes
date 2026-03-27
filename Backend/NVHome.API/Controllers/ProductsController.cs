@@ -66,10 +66,27 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetProduct(Guid id)
     {
         var p = await _context.Products.Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id);
+        if (p == null) return NotFound("Không tìm thấy sản phẩm.");
+
+        return Ok(new ProductResponse
+        {
+            Id = p.Id, Name = p.Name, Slug = p.Slug,
+            OriginalPrice = p.OriginalPrice, DiscountPrice = p.DiscountPrice,
+            DiscountPercent = p.DiscountPercent, Description = p.Description,
+            CategoryId = p.CategoryId,
+            CategoryName = p.Category != null ? p.Category.Name : string.Empty,
+            Images = p.Images, CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
+        });
+    }
+
+    [HttpGet("{slug}")]
+    public async Task<IActionResult> GetProductBySlug(string slug)
+    {
+        var p = await _context.Products.Include(x => x.Category).FirstOrDefaultAsync(x => x.Slug == slug);
         if (p == null) return NotFound("Không tìm thấy sản phẩm.");
 
         return Ok(new ProductResponse
