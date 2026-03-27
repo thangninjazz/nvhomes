@@ -16,7 +16,7 @@ export default function ProjectsPage() {
         setLoading(true);
         const [projRes, catRes] = await Promise.all([
           api.get('/projects'),
-          api.get('/categories')
+          api.get('/categories?type=Project')
         ]);
         setProjects(projRes.data);
         setCategories(catRes.data || []);
