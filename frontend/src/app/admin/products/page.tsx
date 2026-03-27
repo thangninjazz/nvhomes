@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { api } from "@/services/api";
 import { Modal } from "@/components/common/Modal";
-import { ImageUpload } from "@/components/common/ImageUpload";
 import { MultiImageUpload } from "@/components/common/MultiImageUpload";
+import "react-quill-new/dist/quill.snow.css"; // Sử dụng react-quill-new hoặc bản fix cho React 19 nếu có, 
+// nhưng ở đây ta dùng react-quill chuẩn đã install
+
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 export default function ProductManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -12,6 +16,7 @@ export default function ProductManager() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -20,7 +25,9 @@ export default function ProductManager() {
     originalPrice: 0,
     discountPrice: 0,
     description: "",
-    images: [] as string[] // Chuyển thành mảng để dùng MultiImageUpload
+    images: [] as string[],
+    specifications: [] as { key: string; value: string }[],
+    features: [] as string[]
   });
 
   const [categoryTree, setCategoryTree] = useState<any[]>([]);
@@ -69,9 +76,13 @@ export default function ProductManager() {
 
   const openAddModal = () => {
     setEditingItem(null);
-    setFormData({ name: "", slug: "", categoryId: "", originalPrice: 0, discountPrice: 0, description: "", images: [] });
+    setFormData({ 
+      name: "", slug: "", categoryId: "", originalPrice: 0, discountPrice: 0, 
+      description: "", images: [], specifications: [], features: [] 
+    });
     setSelectedParentId("");
     setIsModalOpen(true);
+    setIsPreviewMode(false);
   };
 
   const openEditModal = (item: any) => {
@@ -88,15 +99,61 @@ export default function ProductManager() {
       originalPrice: item.originalPrice || 0,
       discountPrice: item.discountPrice || 0,
       description: item.description || "",
-      images: item.images ? item.images.split(',') : []
+      images: item.images ? item.images.split(',') : [],
+      specifications: item.specifications || [],
+      features: item.features || []
     });
     setIsModalOpen(true);
+    setIsPreviewMode(false);
+  };
+
+  const addSpecification = () => {
+    setFormData({
+      ...formData,
+      specifications: [...formData.specifications, { key: "", value: "" }]
+    });
+  };
+
+  const removeSpecification = (index: number) => {
+    const newSpecs = [...formData.specifications];
+    newSpecs.splice(index, 1);
+    setFormData({ ...formData, specifications: newSpecs });
+  };
+
+  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
+    const newSpecs = [...formData.specifications];
+    newSpecs[index][field] = value;
+    setFormData({ ...formData, specifications: newSpecs });
+  };
+
+  const addFeature = () => {
+    setFormData({
+      ...formData,
+      features: [...formData.features, ""]
+    });
+  };
+
+  const removeFeature = (index: number) => {
+    const newFeatures = [...formData.features];
+    newFeatures.splice(index, 1);
+    setFormData({ ...formData, features: newFeatures });
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    const newFeatures = [...formData.features];
+    newFeatures[index] = value;
+    setFormData({ ...formData, features: newFeatures });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.categoryId) {
       alert("Vui lòng chọn danh mục con.");
+      return;
+    }
+
+    if (!formData.name || !formData.slug) {
+      alert("Vui lòng điền đầy đủ tên và đường dẫn SEO.");
       return;
     }
 
@@ -136,12 +193,22 @@ export default function ProductManager() {
     }
   };
 
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link', 'image'],
+      ['clean']
+    ],
+  }), []);
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
             <h1 className="text-3xl font-black text-stone-900 tracking-tight mb-2">Quản Lý Sản Phẩm (E-Commerce)</h1>
-            <p className="text-stone-500 font-medium">Hỗ trợ tính toán % giảm giá tự động và quản lý kho hàng chuẩn SEO.</p>
+            <p className="text-stone-500 font-medium">Hỗ trợ thông số kỹ thuật động, trình soạn thảo Rich Text và SEO tối ưu.</p>
         </div>
         <button 
           onClick={openAddModal}
@@ -223,115 +290,233 @@ export default function ProductManager() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         title={editingItem ? "Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}
+        maxWidth="max-w-4xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Tên Sản Phẩm</label>
-              <input 
-                type="text" 
-                required
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+        <div className="flex gap-4 mb-6 border-b border-stone-100 pb-4">
+          <button 
+            onClick={() => setIsPreviewMode(false)}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${!isPreviewMode ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400 hover:bg-stone-200'}`}
+          >
+            Chỉnh sửa
+          </button>
+          <button 
+            onClick={() => setIsPreviewMode(true)}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${isPreviewMode ? 'bg-stone-900 text-white shadow-md' : 'bg-stone-100 text-stone-400 hover:bg-stone-200'}`}
+          >
+            Xem trước
+          </button>
+        </div>
+
+        {isPreviewMode ? (
+          <div className="space-y-8 bg-stone-50 p-8 rounded-2xl max-h-[70vh] overflow-y-auto border border-stone-200">
+            <div className="flex gap-6">
+              <div className="w-1/3 aspect-square bg-white rounded-2xl shadow-sm overflow-hidden border border-stone-100">
+                {formData.images.length > 0 ? (
+                  <img src={formData.images[0]} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-stone-300 font-bold uppercase text-[10px]">No Image</div>
+                )}
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-black text-stone-900 mb-2">{formData.name || "Tên sản phẩm"}</h2>
+                <div className="text-red-600 font-black text-xl mb-4">
+                  {formData.discountPrice ? formData.discountPrice.toLocaleString('vi-VN') : formData.originalPrice.toLocaleString('vi-VN')} đ
+                </div>
+                
+                {formData.features.length > 0 && (
+                  <ul className="space-y-2 mb-6">
+                    {formData.features.filter(f => f.trim()).map((f, i) => (
+                      <li key={i} className="flex items-center gap-2 text-stone-600 text-sm font-medium">
+                        <div className="w-1.5 h-1.5 bg-stone-900 rounded-full" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Đường Dẫn SEO (Slug)</label>
-              <input 
-                type="text" 
-                required
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục Chính</label>
-              <select 
-                required
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
-                value={selectedParentId}
-                onChange={(e) => {
-                  setSelectedParentId(e.target.value);
-                  setFormData({ ...formData, categoryId: "" }); // Reset sub-category
-                }}
-              >
-                <option value="">Chọn danh mục chính...</option>
-                {categoryTree.filter(cat => !cat.parentId).map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục Con</label>
-              <select 
-                required
-                disabled={!selectedParentId}
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold disabled:opacity-50"
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-              >
-                <option value="">Chọn danh mục con...</option>
-                {categoryTree.find(c => c.id === selectedParentId)?.children?.map((sub: any) => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
-                ))}
-              </select>
+
+            {formData.specifications.length > 0 && (
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest mb-4">Thông số kỹ thuật</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {formData.specifications.filter(s => s.key.trim()).map((s, i) => (
+                    <div key={i} className="flex justify-between border-b border-stone-50 pb-2">
+                      <span className="text-stone-400 text-xs font-bold">{s.key}</span>
+                      <span className="text-stone-900 text-xs font-black">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="prose prose-stone prose-sm max-w-none bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+               <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest mb-4">Mô tả chi tiết</h3>
+               <div dangerouslySetInnerHTML={{ __html: formData.description || "Chưa có mô tả." }} />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Giá Gốc (VNĐ)</label>
-              <input 
-                type="number" 
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold text-red-600"
-                value={formData.originalPrice}
-                onChange={(e) => setFormData({ ...formData, originalPrice: parseInt(e.target.value) || 0 })}
-              />
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pr-4 custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Tên Sản Phẩm (Validate: Không rỗng)</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Đường Dẫn SEO (Slug)</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Danh Mục</label>
+                  <select 
+                    required
+                    className="w-full bg-stone-50 border border-stone-200 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
+                    value={selectedParentId}
+                    onChange={(e) => {
+                      setSelectedParentId(e.target.value);
+                      setFormData({ ...formData, categoryId: "" });
+                    }}
+                  >
+                    <option value="">Chính...</option>
+                    {categoryTree.filter(cat => !cat.parentId).map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">&nbsp;</label>
+                  <select 
+                    required
+                    disabled={!selectedParentId}
+                    className="w-full bg-stone-50 border border-stone-200 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold disabled:opacity-50"
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  >
+                    <option value="">Con...</option>
+                    {categoryTree.find(c => c.id === selectedParentId)?.children?.map((sub: any) => (
+                      <option key={sub.id} value={sub.id}>{sub.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Giá Giảm (Nếu có)</label>
-              <input 
-                type="number" 
-                className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
-                value={formData.discountPrice}
-                onChange={(e) => setFormData({ ...formData, discountPrice: parseInt(e.target.value) || 0 })}
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Giá Gốc (VNĐ)</label>
+                <input 
+                  type="number" 
+                  className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold text-red-600"
+                  value={formData.originalPrice}
+                  onChange={(e) => setFormData({ ...formData, originalPrice: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Giá Giảm (Nếu có)</label>
+                <input 
+                  type="number" 
+                  className="w-full bg-stone-50 border border-stone-200 px-5 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-bold"
+                  value={formData.discountPrice}
+                  onChange={(e) => setFormData({ ...formData, discountPrice: parseInt(e.target.value) || 0 })}
+                />
+              </div>
             </div>
-          </div>
 
-          <MultiImageUpload 
-            label="Hình Ảnh Sản Phẩm (Gallery)"
-            value={formData.images}
-            onChange={(urls) => setFormData({ ...formData, images: urls })}
-          />
-
-          <div>
-            <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Mô Tả Sản Phẩm</label>
-            <textarea 
-              className="w-full bg-stone-50 border border-stone-200 px-5 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900 font-medium min-h-[120px]"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            <MultiImageUpload 
+              label="Hình Ảnh Sản Phẩm (Gallery)"
+              value={formData.images}
+              onChange={(urls) => setFormData({ ...formData, images: urls })}
             />
-          </div>
 
-          <div className="pt-8 border-t border-stone-100 flex gap-4">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 py-4 bg-stone-100 text-stone-500 font-bold rounded-2xl hover:bg-stone-200 uppercase tracking-widest text-[11px]"
-            >
-              Hủy
-            </button>
-            <button 
-              type="submit" 
-              className="flex-[2] py-4 bg-stone-900 text-white font-black rounded-2xl hover:bg-black uppercase tracking-widest text-[11px] shadow-xl"
-            >
-              Xác Nhận Lưu
-            </button>
-          </div>
-        </form>
+            {/* Thông số kỹ thuật */}
+            <div className="space-y-4 pt-4 border-t border-stone-100">
+               <div className="flex justify-between items-center">
+                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Thông số kỹ thuật (Key - Value)</label>
+                  <button type="button" onClick={addSpecification} className="text-stone-900 hover:text-black font-black text-xs uppercase tracking-widest flex items-center gap-1">+ Thêm dòng</button>
+               </div>
+               {formData.specifications.map((spec, index) => (
+                 <div key={index} className="flex gap-3 items-center">
+                    <input 
+                      placeholder="Tên thông số (VD: Chất liệu)"
+                      className="flex-1 bg-stone-50 border border-stone-200 px-4 py-2 rounded-lg focus:outline-none font-bold text-sm"
+                      value={spec.key}
+                      onChange={(e) => updateSpecification(index, 'key', e.target.value)}
+                    />
+                    <input 
+                      placeholder="Giá trị (VD: Gỗ Sồi)"
+                      className="flex-1 bg-stone-50 border border-stone-200 px-4 py-2 rounded-lg focus:outline-none font-medium text-sm"
+                      value={spec.value}
+                      onChange={(e) => updateSpecification(index, 'value', e.target.value)}
+                    />
+                    <button type="button" onClick={() => removeSpecification(index)} className="text-red-400 hover:text-red-600 font-bold px-2">✕</button>
+                 </div>
+               ))}
+            </div>
+
+            {/* Đặc điểm nổi bật */}
+            <div className="space-y-4 pt-4 border-t border-stone-100">
+               <div className="flex justify-between items-center">
+                  <label className="block text-xs font-black text-stone-400 uppercase tracking-widest">Đặc điểm nổi bật (Bullet List)</label>
+                  <button type="button" onClick={addFeature} className="text-stone-900 hover:text-black font-black text-xs uppercase tracking-widest flex items-center gap-1">+ Thêm dòng</button>
+               </div>
+               {formData.features.map((feature, index) => (
+                 <div key={index} className="flex gap-3 items-center">
+                    <div className="w-1.5 h-1.5 bg-stone-400 rounded-full shrink-0" />
+                    <input 
+                      placeholder="VD: Thiết kế hiện đại, tinh tế"
+                      className="flex-1 bg-stone-50 border border-stone-200 px-4 py-2 rounded-lg focus:outline-none font-medium text-sm"
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
+                    />
+                    <button type="button" onClick={() => removeFeature(index)} className="text-red-400 hover:text-red-600 font-bold px-2">✕</button>
+                 </div>
+               ))}
+            </div>
+
+            {/* Mô tả chi tiết (Rich Text) */}
+            <div className="space-y-4 pt-4 border-t border-stone-100">
+              <label className="block text-xs font-black text-stone-400 uppercase tracking-widest mb-3">Mô tả chi tiết (Rich Text Editor)</label>
+              <div className="rich-text-container bg-stone-50 rounded-2xl overflow-hidden border border-stone-200">
+                <ReactQuill 
+                  theme="snow"
+                  value={formData.description}
+                  onChange={(val) => setFormData({ ...formData, description: val })}
+                  modules={quillModules}
+                  className="min-h-[250px] bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 pt-8 border-t border-stone-100 flex gap-4 bg-white pb-2 z-10">
+              <button 
+                type="button" 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-4 bg-stone-100 text-stone-500 font-bold rounded-2xl hover:bg-stone-200 uppercase tracking-widest text-[11px]"
+              >
+                Hủy
+              </button>
+              <button 
+                type="submit" 
+                className="flex-[2] py-4 bg-stone-900 text-white font-black rounded-2xl hover:bg-black uppercase tracking-widest text-[11px] shadow-xl"
+              >
+                Xác Nhận Lưu
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

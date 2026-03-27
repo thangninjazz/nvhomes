@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NVHome.Application.DTOs.Products;
 using NVHome.Domain.Entities;
 using NVHome.Infrastructure.Data;
+using System.Text.Json;
 
 namespace NVHome.API.Controllers;
 
@@ -77,6 +78,12 @@ public class ProductsController : ControllerBase
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
             Images = p.Images,
+            Specifications = !string.IsNullOrEmpty(p.Specifications) 
+                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<ProductSpecificationDTO>(),
+            Features = !string.IsNullOrEmpty(p.Features) 
+                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<string>(),
             CustomOptions = p.CustomOptions,
             CreatedAt = p.CreatedAt
         }).ToListAsync();
@@ -97,7 +104,14 @@ public class ProductsController : ControllerBase
             DiscountPercent = p.DiscountPercent, Description = p.Description,
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
-            Images = p.Images, CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
+            Images = p.Images,
+            Specifications = !string.IsNullOrEmpty(p.Specifications) 
+                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<ProductSpecificationDTO>(),
+            Features = !string.IsNullOrEmpty(p.Features) 
+                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<string>(),
+            CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
         });
     }
 
@@ -114,7 +128,14 @@ public class ProductsController : ControllerBase
             DiscountPercent = p.DiscountPercent, Description = p.Description,
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
-            Images = p.Images, CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
+            Images = p.Images,
+            Specifications = !string.IsNullOrEmpty(p.Specifications) 
+                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<ProductSpecificationDTO>(),
+            Features = !string.IsNullOrEmpty(p.Features) 
+                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
+                : new List<string>(),
+            CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
         });
     }
 
@@ -142,6 +163,8 @@ public class ProductsController : ControllerBase
             Description = request.Description,
             CategoryId = request.CategoryId,
             Images = request.Images,
+            Specifications = request.Specifications != null ? JsonSerializer.Serialize(request.Specifications) : null,
+            Features = request.Features != null ? JsonSerializer.Serialize(request.Features) : null,
             CustomOptions = request.CustomOptions
         };
 
@@ -169,6 +192,8 @@ public class ProductsController : ControllerBase
         product.OriginalPrice = request.OriginalPrice; product.DiscountPrice = request.DiscountPrice;
         product.DiscountPercent = calcDiscount; product.Description = request.Description;
         product.CategoryId = request.CategoryId; product.Images = request.Images;
+        product.Specifications = request.Specifications != null ? JsonSerializer.Serialize(request.Specifications) : null;
+        product.Features = request.Features != null ? JsonSerializer.Serialize(request.Features) : null;
         product.CustomOptions = request.CustomOptions; product.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
