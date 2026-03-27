@@ -7,25 +7,31 @@ import { api } from '@/services/api';
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [products, setProducts] = useState<any[]>([]);
+  const [categoryName, setCategoryName] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Tự động fetch sản phẩm, truyển tham số sortOrder
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        // Fetch category details for breadcrumb
+        const catRes = await api.get(`/categories/byslug/${slug}`);
+        setCategoryName(catRes.data.name);
+
         // Gửi slug để backend lọc đúng danh mục
         const res = await api.get(`/products?categorySlug=${slug}&sortOrder=${sortOrder}`);
         setProducts(res.data);
       } catch (error) {
-        console.error("Lỗi fetch sản phẩm:", error);
-        setProducts([]); // Trả về mảng rỗng nếu lỗi để người dùng thấy đúng tình trạng
+        console.error("Lỗi fetch dữ liệu:", error);
+        setProducts([]); 
+        setCategoryName(slug.replace('-', ' '));
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, [sortOrder, slug]);
 
   return (
@@ -36,10 +42,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           <nav className="flex text-sm font-semibold text-stone-400 mb-3 tracking-wide">
             <Link href="/" className="hover:text-stone-900 transition-colors">TRANG CHỦ</Link>
             <span className="mx-3">/</span>
-            <span className="text-stone-900 uppercase">{slug.replace('-', ' ')}</span>
+            <span className="text-stone-900 uppercase">{categoryName || slug.replace('-', ' ')}</span>
           </nav>
-          <h1 className="text-4xl md:text-5xl font-black text-stone-900 capitalize tracking-tighter">
-            {slug.replace('-', ' ')}
+          <h1 className="text-4xl md:text-5xl font-black text-stone-900 tracking-tighter uppercase mb-2">
+            {categoryName || slug.replace('-', ' ')}
           </h1>
         </div>
 

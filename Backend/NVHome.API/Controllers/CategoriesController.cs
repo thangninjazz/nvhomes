@@ -84,6 +84,26 @@ public class CategoriesController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("byslug/{slug}")]
+    public async Task<IActionResult> GetCategoryBySlug(string slug)
+    {
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Slug == slug);
+
+        if (category == null) return NotFound("Không tìm thấy danh mục.");
+
+        return Ok(new CategoryResponse
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Slug = category.Slug,
+            ParentId = category.ParentId,
+            OrderIndex = category.OrderIndex,
+            IsVisible = category.IsVisible,
+            Type = category.Type.ToString()
+        });
+    }
+
     [Authorize(Roles = "Admin,Editor")]
     [HttpPost]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
