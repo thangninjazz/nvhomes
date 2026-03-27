@@ -125,51 +125,94 @@ export function Header() {
           </div>
         </div>
  
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         {isOpen && (
-          <div className="lg:hidden py-6 border-t border-border bg-background h-[calc(100vh-80px)] overflow-y-auto">
-            <nav className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <div key={link.label} className="flex flex-col px-2">
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={link.href}
-                      onClick={() => !link.children && setIsOpen(false)}
-                      className="text-lg py-3 text-foreground/80 hover:text-primary transition-colors font-bold flex-1"
-                    >
-                      {link.label}
-                    </Link>
-                    {link.children && link.children.length > 0 && (
-                      <button 
-                        onClick={() => setExpandedParent(expandedParent === link.label ? null : link.label)}
-                        className="p-3 text-muted-foreground hover:text-primary transition-all rounded-full hover:bg-secondary"
+          <div 
+            className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
+        {/* Mobile Menu Drawer */}
+        <div className={`lg:hidden fixed top-0 right-0 z-50 h-full w-[70%] sm:w-[50%] bg-background shadow-2xl transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-6 border-b border-border/50 h-20">
+              <span className="font-serif text-lg font-bold">Menu</span>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-2 hover:bg-secondary rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <nav className="flex-1 py-8 px-4 overflow-y-auto">
+              <form onSubmit={handleSearch} className="relative mb-8 px-2">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-secondary/80 border-none rounded-xl h-12 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-primary transition-all"
+                />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />
+              </form>
+
+              <div className="flex flex-col gap-2">
+                {navLinks.map((link) => (
+                  <div key={link.label} className="flex flex-col">
+                    <div className="flex items-center justify-between hover:bg-secondary/50 rounded-xl px-2 transition-colors">
+                      <Link
+                        href={link.href}
+                        onClick={() => !link.children && setIsOpen(false)}
+                        className="text-base py-4 text-foreground/80 hover:text-primary transition-colors font-bold flex-1"
                       >
-                        <span className={`inline-block transition-transform duration-300 ${expandedParent === link.label ? 'rotate-180' : ''}`}>
-                          ▼
-                        </span>
-                      </button>
+                        {link.label}
+                      </Link>
+                      {link.children && link.children.length > 0 && (
+                        <button 
+                          onClick={() => setExpandedParent(expandedParent === link.label ? null : link.label)}
+                          className="p-4 text-muted-foreground hover:text-primary transition-all"
+                        >
+                          <span className={`inline-block transition-transform duration-300 ${expandedParent === link.label ? 'rotate-180' : ''}`}>
+                            ▼
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                    
+                    {link.children && link.children.length > 0 && expandedParent === link.label && (
+                      <div className="pl-6 flex flex-col gap-3 border-l-2 border-primary/20 mt-1 mb-4 animate-in slide-in-from-top-2 duration-300">
+                        {link.children.map(child => (
+                          <Link
+                            key={child.label}
+                            href={child.href}
+                            onClick={() => setIsOpen(false)}
+                            className="text-sm py-2 text-muted-foreground hover:text-primary font-medium border-b border-border/30 last:border-0"
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  
-                  {link.children && link.children.length > 0 && expandedParent === link.label && (
-                    <div className="pl-6 flex flex-col gap-3 border-l-2 border-primary/20 mt-1 mb-4 animate-in slide-in-from-top-2 duration-300">
-                      {link.children.map(child => (
-                        <Link
-                          key={child.label}
-                          href={child.href}
-                          onClick={() => setIsOpen(false)}
-                          className="text-sm py-2 text-muted-foreground hover:text-primary font-medium border-b border-border/30 last:border-0"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </nav>
+            
+            <div className="p-6 border-t border-border/50 bg-stone-50">
+              <div className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-4">Kết nối với chúng tôi</div>
+              <div className="flex gap-4">
+                <a href="tel:0966245396" className="w-10 h-10 bg-white border border-stone-200 flex items-center justify-center rounded-xl hover:text-primary hover:border-primary transition-all shadow-sm">
+                  <span className="text-sm">📞</span>
+                </a>
+                <a href="https://zalo.me/0966245396" className="w-10 h-10 bg-[#0068ff] text-white flex items-center justify-center rounded-xl hover:opacity-80 transition-all shadow-sm">
+                  <span className="text-xs font-bold uppercase">Zalo</span>
+                </a>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   )
