@@ -15,8 +15,8 @@ public class TelegramService : ITelegramService
     public TelegramService(HttpClient httpClient, IConfiguration configuration, ILogger<TelegramService> logger)
     {
         _httpClient = httpClient;
-        _botToken = configuration["Telegram:BotToken"];
-        _chatId = configuration["Telegram:ChatId"];
+        _botToken = configuration["TELEGRAM_BOT_TOKEN"] ?? configuration["Telegram:BotToken"];
+        _chatId = configuration["TELEGRAM_CHAT_ID"] ?? configuration["Telegram:ChatId"];
         _logger = logger;
     }
 

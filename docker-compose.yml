@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
     container_name: nvhome_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: nvhomedb
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -20,10 +18,15 @@ services:
       dockerfile: Dockerfile
     container_name: nvhome_backend
     ports:
-      - "5232:5232"
+      - "127.0.0.1:5232:5232"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=nvhomedb;Username=postgres;Password=${DB_PASSWORD:-password}
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=nvhomedb;Username=postgres;Password=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     volumes:
       - backend_uploads:/app/wwwroot/uploads
     depends_on:
@@ -40,7 +43,7 @@ services:
         - NEXT_PUBLIC_API_URL=https://nvhomes.vn/api
     container_name: nvhome_frontend
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=https://nvhomes.vn/api
     depends_on:

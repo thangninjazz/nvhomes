@@ -68,12 +68,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Lấy ConnectionString từ appsettings.json
+// Lấy ConnectionString từ cấu hình (ưu tiên appsettings.Development.json khi chạy local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Cấu hình sử dụng PostgreSQL (Npgsql)
+// Cấu hình linh hoạt giữa SQLite (cho Local Dev) và PostgreSQL (cho Production)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (connectionString != null && connectionString.Contains("Data Source="))
+    {
+        // Sử dụng SQLite cho môi trường phát triển cục bộ
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        // Sử dụng PostgreSQL cho môi trường Production/Docker
+        options.UseNpgsql(connectionString);
+    }
+});
 
 // Đăng ký dịch vụ từ Infrastructure (JWT, Hashing...)
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -141,32 +152,56 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
     try
     {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        // context.Database.Migrate(); // Tạm tắt nếu có conflict Model EF9, sẽ chạy tay trên VPS
-        Console.WriteLine("Database check: Skipping auto-migrate to avoid EF9 PendingModelChangesWarning conflict.");
+        try
+        {
+            context.Database.Migrate();
+            Console.WriteLine("Database check: Migration completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Database check Warning: Migration failed (Table may already exist). Error: {ex.Message}");
+        }
 
-        // Seed Admin User nếu chưa có (Với thông tin bảo mật mới)
-        if (!context.Users.Any(u => u.Email == "nv_super_admin@nvhome.vn"))
+        // Seed or Update Admin User (Ensure password from .env is always applied)
+        var adminEmail = builder.Configuration["ADMIN_EMAIL"] ?? "nv_super_admin@nvhome.vn";
+        var adminPassword = builder.Configuration["ADMIN_PASSWORD"];
+
+        if (!string.IsNullOrEmpty(adminPassword))
         {
             var hasher = services.GetRequiredService<IPasswordHasher>();
-            context.Users.Add(new User 
-            { 
-                Id = Guid.NewGuid(),
-                Email = "nv_super_admin@nvhome.vn", 
-                PasswordHash = hasher.Hash("NV_Admin_!@#_2026_Secure_789"), 
-                Role = UserRole.Admin,
-                CreatedAt = DateTime.UtcNow
-            });
+            var adminUser = context.Users.FirstOrDefault(u => u.Email == adminEmail);
+            
+            if (adminUser == null)
+            {
+                // Create new
+                context.Users.Add(new User 
+                { 
+                    Id = Guid.NewGuid(),
+                    Email = adminEmail, 
+                    PasswordHash = hasher.Hash(adminPassword), 
+                    Role = UserRole.Admin,
+                    CreatedAt = DateTime.UtcNow
+                });
+                Console.WriteLine($"Seed: Created new secure admin user: {adminEmail}");
+            }
+            else
+            {
+                // Force Update Password to match current .env (Golden Recovery)
+                adminUser.PasswordHash = hasher.Hash(adminPassword);
+                adminUser.Role = UserRole.Admin; // Ensure role is Admin
+                adminUser.UpdatedAt = DateTime.UtcNow;
+                Console.WriteLine($"Seed: Updated existing admin user credentials: {adminEmail}");
+            }
             context.SaveChanges();
-            Console.WriteLine("Seed: Created new secure Super Admin user.");
         }
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi khi chạy migration cơ sở dữ liệu.");
+        logger.LogError(ex, "Lỗi khi chạy logic khởi tạo (Seeding/Migration).");
     }
 }
 
