@@ -9,7 +9,7 @@ export default function ThangDZPage() {
         </h1>
         <div className="h-2 w-32 bg-red-600 mx-auto mb-10" />
         <p className="text-stone-400 text-xl font-medium leading-relaxed">
-          Hệ thống CI/CD Automation của NVHome hoạt động hoàn hảo.Hehe<br/>
+          Hệ thống CI/CD Automation của NVHome hoạt động hoàn hảo.<br/>
           Tự động Pull & Build thành công! 🚀
         </p>
         <div className="mt-12 p-6 border border-stone-800 rounded-3xl bg-white/5 backdrop-blur-sm">
