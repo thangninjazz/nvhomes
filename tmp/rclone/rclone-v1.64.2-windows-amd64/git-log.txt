@@ -1,0 +1,41 @@
+commit 0b2e17b3961e593b8ed2e84e15d1a1710a88286c
+Author: Nick Craig-Wood <nick@craig-wood.com>
+Date:   Thu Oct 19 10:09:04 2023 +0100
+
+    Version v1.64.2
+
+commit 4325a7c362ce9487d1e22ee95a09d72e9c75ee3c
+Author: Nick Craig-Wood <nick@craig-wood.com>
+Date:   Wed Oct 18 11:25:32 2023 +0100
+
+    selfupdate: fix "invalid hashsum signature" error
+    
+    This was caused by a change to the upstream library
+    ProtonMail/go-crypto checking the flags on the keys more strictly.
+    
+    However the signing key for rclone is very old and does not have those
+    flags. Adding those flags using `gpg --edit-key` and then the
+    `change-usage` subcommand to remove, save, quite then re-add, save
+    quit the signing capabilities caused the key to work.
+    
+    This also adds tests for the verification and adds the selfupdate
+    tests into the integration test harness as they had been disabled on
+    CI because they rely on external sources and are sometimes unreliable.
+    
+    Fixes #7373
+
+commit 2730e9ff08b1efb6eb6bdf3e92044f03d7edae6e
+Author: Nick Craig-Wood <nick@craig-wood.com>
+Date:   Wed Oct 18 15:29:55 2023 +0100
+
+    build: fix docker build running out of space
+    
+    This removes some unused SDKs from the build machine to free some
+    space up before building. It also adds some lines to show the free
+    space.
+
+commit 929d8b8a6d1d7b522d4b78d91938e67122e4b271
+Author: Nick Craig-Wood <nick@craig-wood.com>
+Date:   Tue Oct 17 18:35:56 2023 +0100
+
+    Start v1.64.2-DEV development

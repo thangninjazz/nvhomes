@@ -136,12 +136,27 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
                     )}
                 </div>
 
-                <div className="prose prose-stone mb-12 text-stone-600 leading-relaxed font-medium">
+                <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed font-medium">
                     <div 
-                      className="text-lg text-stone-500 font-serif leading-loose italic mb-6 whitespace-pre-line"
+                      className="rich-text-content"
                       dangerouslySetInnerHTML={{ __html: product.description }}
                     />
                 </div>
+
+                {/* Specifications Section */}
+                {product.specifications && product.specifications.length > 0 && (
+                  <div className="mb-12 pt-10 border-t border-stone-100">
+                    <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest mb-6">Thông Số Kỹ Thuật</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                      {product.specifications.map((spec: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center py-3 border-b border-stone-50">
+                          <span className="text-stone-500 text-sm font-bold uppercase tracking-wider">{spec.key}</span>
+                          <span className="text-stone-900 text-sm font-black">{spec.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Call to Actions (Funnel) */}
                 <div className="mt-auto space-y-5 bg-stone-50 p-6 rounded-3xl border border-stone-100">
