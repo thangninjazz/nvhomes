@@ -25,3 +25,10 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Backups & Private Data
+backups/
+*.sql
+*.tar.gz
+*.db
+*.bak

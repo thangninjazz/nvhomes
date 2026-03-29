@@ -27,7 +27,7 @@ Từ máy tính Windows hiện tại, mở PowerShell tại thư mục dự án 
 ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 "docker exec -i nvhome_db psql -U postgres -d nvhomedb -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"
 
 # 2. Nạp bản backup Vàng
-cmd /c "type nvhome_production_stable_20260328.sql | ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 \"docker exec -i nvhome_db psql -U postgres -d nvhomedb\""
+cmd /c "type backups\nvhome_production_stable_20260328.sql | ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 \"docker exec -i nvhome_db psql -U postgres -d nvhomedb\""
 
 # 3. Khởi động lại Backend để đồng bộ
 ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 "docker restart nvhome_backend"
