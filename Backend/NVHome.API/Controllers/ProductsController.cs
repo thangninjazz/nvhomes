@@ -78,17 +78,19 @@ public class ProductsController : ControllerBase
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
             Images = p.Images,
-            Specifications = !string.IsNullOrEmpty(p.Specifications) 
-                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<ProductSpecificationDTO>(),
-            Features = !string.IsNullOrEmpty(p.Features) 
-                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<string>(),
+            Specifications = SafeDeserialize<List<ProductSpecificationDTO>>(p.Specifications),
+            Features = SafeDeserialize<List<string>>(p.Features),
             CustomOptions = p.CustomOptions,
             CreatedAt = p.CreatedAt
         }).ToListAsync();
-
         return Ok(products);
+    }
+
+    private static T SafeDeserialize<T>(string? json) where T : new()
+    {
+        if (string.IsNullOrEmpty(json)) return new T();
+        try { return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new T(); }
+        catch { return new T(); }
     }
 
     [HttpGet("{id:guid}")]
@@ -105,12 +107,8 @@ public class ProductsController : ControllerBase
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
             Images = p.Images,
-            Specifications = !string.IsNullOrEmpty(p.Specifications) 
-                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<ProductSpecificationDTO>(),
-            Features = !string.IsNullOrEmpty(p.Features) 
-                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<string>(),
+            Specifications = SafeDeserialize<List<ProductSpecificationDTO>>(p.Specifications),
+            Features = SafeDeserialize<List<string>>(p.Features),
             CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
         });
     }
@@ -129,12 +127,8 @@ public class ProductsController : ControllerBase
             CategoryId = p.CategoryId,
             CategoryName = p.Category != null ? p.Category.Name : string.Empty,
             Images = p.Images,
-            Specifications = !string.IsNullOrEmpty(p.Specifications) 
-                ? JsonSerializer.Deserialize<List<ProductSpecificationDTO>>(p.Specifications, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<ProductSpecificationDTO>(),
-            Features = !string.IsNullOrEmpty(p.Features) 
-                ? JsonSerializer.Deserialize<List<string>>(p.Features, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) 
-                : new List<string>(),
+            Specifications = SafeDeserialize<List<ProductSpecificationDTO>>(p.Specifications),
+            Features = SafeDeserialize<List<string>>(p.Features),
             CustomOptions = p.CustomOptions, CreatedAt = p.CreatedAt
         });
     }
@@ -160,7 +154,7 @@ public class ProductsController : ControllerBase
             OriginalPrice = request.OriginalPrice,
             DiscountPrice = request.DiscountPrice,
             DiscountPercent = calcDiscount,
-            Description = request.Description,
+            Description = System.Net.WebUtility.HtmlDecode(request.Description),
             CategoryId = request.CategoryId,
             Images = request.Images,
             Specifications = request.Specifications != null ? JsonSerializer.Serialize(request.Specifications) : null,
@@ -190,7 +184,8 @@ public class ProductsController : ControllerBase
 
         product.Name = request.Name; product.Slug = request.Slug;
         product.OriginalPrice = request.OriginalPrice; product.DiscountPrice = request.DiscountPrice;
-        product.DiscountPercent = calcDiscount; product.Description = request.Description;
+        product.DiscountPercent = calcDiscount; 
+        product.Description = System.Net.WebUtility.HtmlDecode(request.Description);
         product.CategoryId = request.CategoryId; product.Images = request.Images;
         product.Specifications = request.Specifications != null ? JsonSerializer.Serialize(request.Specifications) : null;
         product.Features = request.Features != null ? JsonSerializer.Serialize(request.Features) : null;

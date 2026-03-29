@@ -77,6 +77,14 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
     });
   };
 
+  // Hàm giải mã HTML Entities (vd: &lt; thành <)
+  const decodeHtml = (html: string) => {
+    if (!html) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
   return (
     <div className="bg-white min-h-screen pt-28 pb-20">
       <div className="container mx-auto px-4 lg:px-8">
@@ -139,7 +147,7 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
                 <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed font-medium">
                     <div 
                       className="rich-text-content"
-                      dangerouslySetInnerHTML={{ __html: product.description }}
+                      dangerouslySetInnerHTML={{ __html: decodeHtml(product.description) }}
                     />
                 </div>
 
