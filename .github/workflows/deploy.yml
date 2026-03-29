@@ -66,3 +66,7 @@ jobs:
             sudo docker-compose pull
             sudo docker-compose up -d
             sudo docker image prune -f
+            
+            # Cài đặt và phân quyền cho hệ thống Backup
+            chmod +x ~/nvhome/scripts/*.sh
+            /bin/bash ~/nvhome/scripts/setup_backup.sh

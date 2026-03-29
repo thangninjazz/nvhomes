@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-source_path = r"C:\Users\Admin\Downloads\z7669903480130_ede55fdbdf00dd75ffbef04bdf485077.jpg"
+source_path = r"C:\Users\Admin\Downloads\z7670577186907_0bd9316885469ad6def54a8c43278363.jpg"
 public_dir = r"c:\Users\Admin\Desktop\NVHome\frontend\public"
 
 if not os.path.exists(public_dir):
