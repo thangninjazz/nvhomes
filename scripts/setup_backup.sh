@@ -2,7 +2,10 @@
 
 # Configuration
 BACKUP_SCRIPT="$HOME/nvhome/scripts/backup_vps.sh"
-CRON_JOB="0 20 * * * /bin/bash $BACKUP_SCRIPT >> $HOME/nvhome_backups/backup.log 2>&1"
+# 3:00 AM VN (20:00 UTC) - Backup & Upload
+CRON_BACKUP="0 20 * * * /bin/bash $BACKUP_SCRIPT >> $HOME/nvhome_backups/backup.log 2>&1"
+# 6:00 AM VN (23:00 UTC) - Telegram Notification
+CRON_NOTIFY="0 23 * * * /bin/bash $BACKUP_SCRIPT --notify >> $HOME/nvhome_backups/notify.log 2>&1"
 
 # 1. Install Rclone (Latest version from official script)
 if ! command -v rclone &> /dev/null; then
@@ -10,11 +13,18 @@ if ! command -v rclone &> /dev/null; then
     sudo curl https://rclone.org/install.sh | sudo bash
 fi
 
-# 2. Add Cron Job (8:00 PM UTC = 3:00 AM VN)
-# Check if cron job already exists to avoid duplicates
-(crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT"; echo "$CRON_JOB") | crontab -
+# 2. Add Cron Jobs
+# Remove old cron jobs for this script first
+crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" > mycron
+# Add new jobs
+echo "$CRON_BACKUP" >> mycron
+echo "$CRON_NOTIFY" >> mycron
+# Install new crontab
+crontab mycron
+rm mycron
 
 echo "--- Setup Complete ---"
 echo "1. Script located at: $BACKUP_SCRIPT"
-echo "2. Cron Job scheduled for 3:00 AM VN Time (8 PM UTC)."
-echo "3. Action needed: Run 'rclone config' to connect Google Drive (Name it 'gdrive')."
+echo "2. Backup scheduled for 3:00 AM VN Time (8 PM UTC)."
+echo "3. Notification scheduled for 6:00 AM VN Time (11 PM UTC)."
+echo "4. Action needed: Run 'rclone config' if not already done."
