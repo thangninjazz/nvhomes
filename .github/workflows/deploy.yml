@@ -21,6 +21,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 30m
           script: |
-            cd ~/nvhome
+            cd ~/nvhome || (mkdir -p ~/nvhome && cd ~/nvhome && git clone https://github.com/thangninjazz/nvhomes.git .)
             git pull origin main
-            DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 sudo docker-compose up -d --build
+            sudo DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker-compose up -d --build
