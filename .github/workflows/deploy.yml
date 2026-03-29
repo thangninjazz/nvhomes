@@ -1,4 +1,5 @@
-name: Deploy NVHome to VPS
+name: Deploy NVHome to VPS (v2.24.1)
+# Triggering fresh build after VPS Docker upgrade
 
 on:
   push:
