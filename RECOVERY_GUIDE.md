@@ -3,7 +3,7 @@
 Đây là tài liệu hướng dẫn khôi phục và bảo trì hệ thống NVHome ở trạng thái ổn định nhất (Đã sửa lỗi phông chữ và lỗi 500). Hãy lưu giữ tài liệu này cẩn thận.
 
 ## 📦 Các tệp tin quan trọng (Golden Evidence)
-- **Database Backup**: [nvhome_production_stable_20260328.sql](file:///c:/Users/Admin/Desktop/NVHome/nvhome_production_stable_20260328.sql) - Chứa toàn bộ dữ liệu sạch và phông chữ chuẩn.
+- **Database Backup**: [backups/nvhome_production_stable_20260328.sql](file:///c:/Users/Admin/Desktop/NVHome/backups/nvhome_production_stable_20260328.sql) - Chứa toàn bộ dữ liệu sạch và phông chữ chuẩn.
 - **Docker Config**: [docker-compose.yml](file:///c:/Users/Admin/Desktop/NVHome/docker-compose.yml)
 - **Nginx Proxy**: [nginx.conf](file:///c:/Users/Admin/Desktop/NVHome/nginx.conf)
 
@@ -24,13 +24,13 @@ docker compose -f ~/nvhome/docker-compose.yml up -d
 Từ máy tính Windows hiện tại, mở PowerShell tại thư mục dự án và chạy lệnh sau (đã kiểm tra chuẩn):
 ```powershell
 # 1. Làm sạch schema cũ
-ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 "docker exec -i nvhome_db psql -U postgres -d nvhomedb -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"
+ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.124.161.118 "docker exec -i nvhome_db psql -U postgres -d nvhomedb -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"
 
 # 2. Nạp bản backup Vàng
-cmd /c "type backups\nvhome_production_stable_20260328.sql | ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 \"docker exec -i nvhome_db psql -U postgres -d nvhomedb\""
+cmd /c "type backups\backups/nvhome_production_stable_20260328.sql | ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.124.161.118 \"docker exec -i nvhome_db psql -U postgres -d nvhomedb\""
 
 # 3. Khởi động lại Backend để đồng bộ
-ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.142.185.53 "docker restart nvhome_backend"
+ssh -i c:\Users\Admin\.ssh\google_compute_engine -o StrictHostKeyChecking=no thang_dv220620002@34.124.161.118 "docker restart nvhome_backend"
 ```
 
 ---
@@ -45,7 +45,7 @@ Nếu website bị lỗi, hãy kiểm tra theo thứ tự:
 ---
 
 ## 📌 Thông tin hệ thống
-- **VPS IP**: `34.142.185.53`
+- **VPS IP**: `34.124.161.118`
 - **Tài khoản**: `thang_dv220620002`
 - **PostgreSQL**: DB `nvhomedb`, User `postgres`
 
