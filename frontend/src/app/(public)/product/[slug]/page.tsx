@@ -77,12 +77,21 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
     });
   };
 
-  // Hàm giải mã HTML Entities (vd: &lt; thành <)
+  // Hàm giải mã HTML Entities an toàn (giải mã đa tầng nếu bị mã hóa nhiều lần)
   const decodeHtml = (html: string) => {
     if (!html) return "";
+    let decoded = html;
+    let prev = "";
     const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
+    
+    // Giải mã tối đa 3 lần để tránh vòng lặp vô tận (đề phòng dữ liệu cực đoan)
+    for (let i = 0; i < 3; i++) {
+        txt.innerHTML = decoded;
+        decoded = txt.value;
+        if (decoded === prev) break;
+        prev = decoded;
+    }
+    return decoded;
   };
 
   return (
