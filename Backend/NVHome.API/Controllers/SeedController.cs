@@ -102,6 +102,16 @@ public class SeedController : ControllerBase
                     Description = "Bàn làm việc mặt gỗ tự nhiên sồi Nga, khung thép, có ngăn kéo khóa, kích thước 160x80cm.",
                     CategoryId = catVanPhong.Id,
                     Images = "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?q=80&w=800"
+                },
+                new Product
+                {
+                    Name = "Bàn Ăn 6 Ghế Testing",
+                    Slug = "ban-an-testing-success",
+                    OriginalPrice = 18_000_000,
+                    Description = "&lt;p&gt;&lt;h2&gt;Đặc điểm nổi bật&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;Chất liệu gỗ sồi tự nhiên&lt;/li&gt;&lt;li&gt;Thiết kế hiện đại&lt;/li&gt;&lt;/ul&gt;&lt;/p&gt;",
+                    Specifications = "[{\"Key\":\"Kích thước\",\"Value\":\"180x90cm\"},{\"Key\":\"Số lượng ghế\",\"Value\":\"6\"}]",
+                    CategoryId = catPhongBep.Id,
+                    Images = "https://images.unsplash.com/photo-1617806118233-f8e1374a2f9c?q=80&w=800"
                 }
             );
             await _context.SaveChangesAsync();
