@@ -57,6 +57,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 15m
+          script_stop: true
           script: |
             cd ~/nvhome || (mkdir -p ~/nvhome && cd ~/nvhome && git clone https://github.com/thangninjazz/nvhomes.git .)
             git pull origin main
