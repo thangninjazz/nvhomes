@@ -113,30 +113,32 @@
   }
 }
 
-/* Rich Text Content Styles (for Product Description) */
-.rich-text-content, 
-.rich-text-content * {
+/* Product Rich Text Content Styles (Optimized for Mobile) */
+.product-rich-text, 
+.product-rich-text * {
   word-break: normal !important;
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
+  hyphens: none !important;
 }
 
-.rich-text-content {
+.product-rich-text {
   line-height: 1.8;
   color: inherit;
+  font-size: 1rem;
 }
 
-.rich-text-content h1, .rich-text-content h2, .rich-text-content h3 {
+.product-rich-text h1, .product-rich-text h2, .product-rich-text h3 {
   font-weight: 800;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
   color: #1c1917; /* stone-900 */
-  word-break: normal;
+  line-height: 1.3;
 }
 
-.rich-text-content h1 { font-size: 1.875rem; }
-.rich-text-content h2 { font-size: 1.5rem; }
-.rich-text-content h3 { font-size: 1.25rem; }
+.product-rich-text h1 { font-size: 2rem; }
+.product-rich-text h2 { font-size: 1.75rem; }
+.product-rich-text h3 { font-size: 1.5rem; }
 
 .rich-text-content p {
   margin-bottom: 1.25rem;

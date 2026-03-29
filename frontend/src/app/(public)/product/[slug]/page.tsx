@@ -168,9 +168,9 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
                   </div>
                 )}
 
-                <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed font-medium">
+                <div className="mb-12 text-stone-600 leading-relaxed font-medium">
                     <div 
-                      className="rich-text-content"
+                      className="product-rich-text"
                       dangerouslySetInnerHTML={{ __html: decodeHtml(product.description) }}
                     />
                 </div>
