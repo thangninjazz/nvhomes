@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Định nghĩa Base URL cho Backend .NET
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5232/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Khởi tạo instance của Axios
 export const api = axios.create({
