@@ -114,11 +114,16 @@
 }
 
 /* Rich Text Content Styles (for Product Description) */
+.rich-text-content, 
+.rich-text-content * {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+}
+
 .rich-text-content {
   line-height: 1.8;
   color: inherit;
-  word-break: normal;
-  overflow-wrap: break-word;
 }
 
 .rich-text-content h1, .rich-text-content h2, .rich-text-content h3 {
