@@ -23,4 +23,4 @@ jobs:
           script: |
             cd ~/nvhome
             git pull origin main
-            sudo docker-compose up -d --build
+            DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 sudo docker-compose up -d --build
