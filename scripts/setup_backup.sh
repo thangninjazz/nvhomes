@@ -4,11 +4,10 @@
 BACKUP_SCRIPT="$HOME/nvhome/scripts/backup_vps.sh"
 CRON_JOB="0 20 * * * /bin/bash $BACKUP_SCRIPT >> $HOME/nvhome_backups/backup.log 2>&1"
 
-# 1. Install Rclone if not present
+# 1. Install Rclone (Latest version from official script)
 if ! command -v rclone &> /dev/null; then
-    echo "Installing rclone..."
-    sudo apt-get update
-    sudo apt-get install -y rclone
+    echo "Installing latest rclone..."
+    sudo curl https://rclone.org/install.sh | sudo bash
 fi
 
 # 2. Add Cron Job (8:00 PM UTC = 3:00 AM VN)
