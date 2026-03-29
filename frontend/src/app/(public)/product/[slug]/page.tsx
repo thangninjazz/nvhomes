@@ -153,13 +153,6 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
                     )}
                 </div>
 
-                <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed font-medium">
-                    <div 
-                      className="rich-text-content"
-                      dangerouslySetInnerHTML={{ __html: decodeHtml(product.description) }}
-                    />
-                </div>
-
                 {/* Specifications Section */}
                 {product.specifications && product.specifications.length > 0 && (
                   <div className="mb-12 pt-10 border-t border-stone-100">
@@ -174,6 +167,13 @@ export default function ProductDetail({ params }: { params: Promise<{ slug: stri
                     </div>
                   </div>
                 )}
+
+                <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed font-medium">
+                    <div 
+                      className="rich-text-content"
+                      dangerouslySetInnerHTML={{ __html: decodeHtml(product.description) }}
+                    />
+                </div>
 
                 {/* Call to Actions (Funnel) */}
                 <div className="mt-auto space-y-5 bg-stone-50 p-6 rounded-3xl border border-stone-100">
