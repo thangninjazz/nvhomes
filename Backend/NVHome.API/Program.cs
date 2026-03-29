@@ -117,7 +117,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
     // Loosening CSP to allow API connections and common external resources
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://nvhomes.vn;");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://nvhomes.vn https://www.google.com;");
     await next();
 });
 
@@ -130,15 +130,15 @@ app.UseCors("ProductionPolicy");
 
 // Đảm bảo thư mục uploads tồn tại
 var uploadsDir = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
-if (!Directory.Exists(uploadsDir))
+var absoluteUploadsDir = Path.GetFullPath(uploadsDir);
+if (!Directory.Exists(absoluteUploadsDir))
 {
-    Directory.CreateDirectory(uploadsDir);
+    Directory.CreateDirectory(absoluteUploadsDir);
 }
 
-// Cấu hình để truy cập ảnh qua đường dẫn /api/uploads/xxx.webp
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(uploadsDir),
+    FileProvider = new PhysicalFileProvider(absoluteUploadsDir),
     RequestPath = "/api/uploads"
 });
 

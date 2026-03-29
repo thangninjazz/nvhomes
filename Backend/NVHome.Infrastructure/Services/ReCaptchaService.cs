@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -27,40 +28,63 @@ namespace NVHome.Infrastructure.Services
         public async Task<bool> VerifyToken(string token)
         {
             var secretKey = _configuration["ReCaptcha:SecretKey"];
-            if (string.IsNullOrEmpty(secretKey)) return true; 
-
-            var response = await _httpClient.PostAsync(
-                $"https://www.google.com/recaptcha/api/siteverify?secret={secretKey}&response={token}", 
-                null);
-
-            if (!response.IsSuccessStatusCode) return false;
-
-            var jsonString = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("ReCaptcha Response: {Json}", jsonString);
-            
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var result = JsonSerializer.Deserialize<ReCaptchaResponse>(jsonString, options);
-
-            if (result == null || !result.Success)
+            if (string.IsNullOrEmpty(secretKey))
             {
-                _logger.LogWarning("ReCaptcha Verification Failed: {Json}", jsonString);
-                return false;
+                _logger.LogWarning("reCAPTCHA SecretKey is missing in configuration.");
+                return true; 
             }
 
-            // Đối với v3, nếu Score quá thấp (< 0.5) thì có thể coi là bot
-            if (result.Score < 0.5f)
-            {
-                _logger.LogWarning("ReCaptcha Score too low: {Score}", result.Score);
-                // return false; // Bạn có thể quyết định chặn hoặc cho qua tùy độ gắt
-            }
+            // Safety checks for logging to prevent crash if token is null or short
+            var safeSecret = !string.IsNullOrEmpty(secretKey) && secretKey.Length >= 5 ? secretKey.Substring(0, 5) : "***";
+            var safeToken = !string.IsNullOrEmpty(token) && token.Length >= 10 ? token.Substring(0, 10) : (token ?? "null");
 
-            return result.Success;
+            _logger.LogInformation("Verifying reCAPTCHA. Secret starts with: {PartialSecret}... Token starts with: {PartialToken}...", 
+                safeSecret, safeToken);
+
+            try 
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("secret", secretKey!),
+                    new KeyValuePair<string, string>("response", token ?? "")
+                });
+
+                var response = await _httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("reCAPTCHA API returned non-success status: {Status}", response.StatusCode);
+                    return false;
+                }
+
+                var jsonString = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("reCAPTCHA Response from Google: {Json}", jsonString);
+                
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<ReCaptchaResponse>(jsonString, options);
+
+                if (result == null || !result.Success)
+                {
+                    _logger.LogWarning("reCAPTCHA Verification Failed. Full Response: {Json}", jsonString);
+                    return false; 
+                }
+
+                _logger.LogInformation("reCAPTCHA Verified Successfully. Score: {Score}", result.Score);
+                return result.Score >= 0.3f; 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gọi API reCAPTCHA. Có thể do lỗi mạng hoặc cấu hình.");
+                return false; // Fail-safe: Vẫn cho phép ghi nhận khách hàng nếu API gặp lỗi kỹ thuật
+            }
         }
 
         private class ReCaptchaResponse
         {
             public bool Success { get; set; }
             public float Score { get; set; } // For v3
+            [JsonPropertyName("error-codes")]
+            public string[]? ErrorCodes { get; set; }
         }
     }
 }

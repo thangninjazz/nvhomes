@@ -12,11 +12,9 @@ const FacebookIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const InstagramIcon = ({ className }: { className?: string }) => (
+const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 )
 
@@ -28,9 +26,9 @@ const YoutubeIcon = ({ className }: { className?: string }) => (
 )
 
 const socialLinks = [
-  { icon: FacebookIcon, href: "#", label: "Facebook" },
-  { icon: InstagramIcon, href: "#", label: "Instagram" },
-  { icon: YoutubeIcon, href: "#", label: "Youtube" }
+  { icon: FacebookIcon, href: "https://www.facebook.com/noithatnvhomes.trongoi", label: "Facebook" },
+  { icon: TikTokIcon, href: "https://www.tiktok.com/@nvhomes.design?_r=1&_t=ZS-954OPYE1ktV", label: "TikTok" },
+  { icon: YoutubeIcon, href: "https://www.youtube.com/channel/UCDipTpzGMcunJwlhl0EA2oQ", label: "Youtube" }
 ]
 
 export function Footer() {
@@ -90,13 +88,17 @@ export function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-primary-foreground flex items-center justify-center">
-                <span className="text-primary font-serif text-2xl font-bold">N</span>
+            <Link href="/" className="flex items-center gap-3 mb-6 group">
+              <div className="relative w-12 h-12 overflow-hidden rounded-xl border-2 border-primary-foreground/20 group-hover:border-primary-foreground transition-all duration-300">
+                <img 
+                  src="/logo.png" 
+                  alt="NV Homes Logo" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
               </div>
-              <div>
-                <span className="font-serif text-2xl font-semibold">NV Homes</span>
-                <p className="text-xs text-primary-foreground/60 tracking-widest uppercase">Nội thất cao cấp</p>
+              <div className="hidden sm:block">
+                <span className="font-serif text-2xl font-semibold text-primary-foreground group-hover:text-primary-foreground/80 transition-colors tracking-tight">NV Homes</span>
+                <p className="text-[10px] text-primary-foreground/60 tracking-[0.2em] uppercase font-bold">Nội thất cao cấp</p>
               </div>
             </Link>
             <p className="text-primary-foreground/70 leading-relaxed mb-6 max-w-sm">

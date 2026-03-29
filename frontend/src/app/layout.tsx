@@ -1,41 +1,54 @@
-import type { Metadata } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Metadata } from 'next'
+import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
 
-const playfair = Playfair_Display({ 
-  subsets: ["latin"],
+const playfair = localFont({
+  src: [
+    {
+      path: '../../public/fonts/playfair-display-regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/playfair-display-bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-serif',
-  display: 'swap'
-});
+})
 
-const inter = Inter({ 
-  subsets: ["latin"],
+const inter = localFont({
+  src: [
+    {
+      path: '../../public/fonts/inter-regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/inter-semibold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/inter-bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-sans',
-  display: 'swap'
-});
+})
 
 export const metadata: Metadata = {
   title: 'NV Homes | Thiết Kế & Thi Công Nội Thất Cao Cấp',
   description: 'Kiến tạo đẳng cấp cho ngôi nhà bạn - Thiết kế sáng tạo, thi công tận tâm, chất lượng từ tâm',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/logo.png',
   },
 }
 
@@ -63,7 +76,7 @@ export default function RootLayout({
           <ThemeToggleFixed />
           <Analytics />
           <Script 
-            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ldx95ksAAAAAJyG9NvRfD0NVvzPSJa8GKhwkkSb'}`} 
+            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LdI0ZwsAAAAAAgRP6zInmBZ_F06PVNtns4fl7LN'}`} 
             strategy="afterInteractive" 
           />
         </ThemeProvider>

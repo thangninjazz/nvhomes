@@ -15,12 +15,14 @@ public class CustomersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IReCaptchaService _reCaptchaService;
     private readonly ITelegramService _telegramService;
+    private readonly ILogger<CustomersController> _logger;
 
-    public CustomersController(ApplicationDbContext context, IReCaptchaService reCaptchaService, ITelegramService telegramService)
+    public CustomersController(ApplicationDbContext context, IReCaptchaService reCaptchaService, ITelegramService telegramService, ILogger<CustomersController> logger)
     {
         _context = context;
         _reCaptchaService = reCaptchaService;
         _telegramService = telegramService;
+        _logger = logger;
     }
 
     // GET: api/customers - Lấy danh sách khách hàng cho CRM (Phân trang & Tìm kiếm)
@@ -68,7 +70,11 @@ public class CustomersController : ControllerBase
         if (!string.IsNullOrEmpty(request.ReCaptchaToken))
         {
             var isValid = await _reCaptchaService.VerifyToken(request.ReCaptchaToken);
-            if (!isValid) return BadRequest(new { message = "Xác thực ReCaptcha thất bại." });
+            if (!isValid)
+            {
+                // Thay vì chặn (BadRequest), chúng ta chỉ log cảnh báo để không làm gián đoạn người dùng
+                 _logger.LogWarning("Xác thực reCAPTCHA thất bại cho khách hàng {Phone}, nhưng vẫn cho phép tiếp tục.", request.PhoneNumber);
+            }
         }
 
         // 2. Sanitize dữ liệu trước khi lưu (Chống XSS/Injection)

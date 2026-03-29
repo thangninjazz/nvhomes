@@ -60,13 +60,17 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 shrink-0">
-              <div className="w-10 h-10 bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-serif text-xl font-bold">N</span>
+            <Link href="/" className="flex items-center gap-3 shrink-0 group">
+              <div className="relative w-12 h-12 overflow-hidden rounded-xl border-2 border-primary/20 group-hover:border-primary transition-all duration-300">
+                <img 
+                  src="/logo.png" 
+                  alt="NV Homes Logo" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
               </div>
               <div className="hidden sm:block">
-                <span className="font-serif text-xl font-semibold tracking-tight text-foreground">NV Homes</span>
-                <p className="text-xs text-muted-foreground tracking-widest uppercase">Nội thất cao cấp</p>
+                <span className="font-serif text-xl font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">NV Homes</span>
+                <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase font-bold">Nội thất cao cấp</p>
               </div>
             </Link>
    

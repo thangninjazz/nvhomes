@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Phone, MapPin, Mail, Clock, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 
 const contactInfo = [
   {
@@ -41,6 +42,7 @@ export function ContactSection() {
     message: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
 
@@ -50,15 +52,34 @@ export function ContactSection() {
     setError("")
     
     try {
-      // 1. Lấy Google reCAPTCHA Token (v3)
-      // Thêm script reCAPTCHA vào head nếu chưa có (thông thường nến thêm vào layout)
+      // 1. Lấy Google reCAPTCHA Token (v3) với cơ chế Timeout để tránh treo form
       const token = await new Promise<string>((resolve) => {
+        // Đặt timeout 3 giây, nếu quá lâu thì bỏ qua xác thực để không làm mất lead
+        const timeout = setTimeout(() => {
+          console.warn("reCAPTCHA timeout - proceeding without token");
+          resolve("");
+        }, 3000);
+
+        if (!(window as any).grecaptcha) {
+          console.warn("reCAPTCHA not loaded");
+          clearTimeout(timeout);
+          resolve("");
+          return;
+        }
+
         (window as any).grecaptcha.ready(async () => {
-          const t = await (window as any).grecaptcha.execute(
-            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Ldx95ksAAAAAJyG9NvRfD0NVvzPSJa8GKhwkkSb', 
-            { action: 'contact' }
-          );
-          resolve(t);
+          try {
+            const t = await (window as any).grecaptcha.execute(
+              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LdI0ZwsAAAAAAgRP6zInmBZ_F06PVNtns4fl7LN', 
+              { action: 'contact' }
+            );
+            clearTimeout(timeout);
+            resolve(t || "");
+          } catch (err) {
+            console.error("reCAPTCHA execution error:", err);
+            clearTimeout(timeout);
+            resolve("");
+          }
         });
       });
 
@@ -72,9 +93,24 @@ export function ContactSection() {
       })
       setIsSuccess(true)
       setFormData({ name: "", phone: "", message: "" })
-    } catch (err) {
-      console.error("Error submitting form:", err)
-      setError("Xác thực thất bại hoặc lỗi hệ thống. Vui lòng thử lại.")
+    } catch (error: any) {
+      console.error("Form submission error:", error);
+      
+      let errorMessage = "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng kiểm tra kết nối mạng và thử lại.";
+      
+      if (error.response) {
+        // Lỗi từ phía Server
+        errorMessage = error.response.data?.message || `Lỗi máy chủ (${error.response.status})`;
+      } else if (error.request) {
+        // Yêu cầu đã gửi nhưng không nhận được phản hồi (CORS hoặc Network)
+        errorMessage = "Không thể kết nối tới máy chủ. Vui lòng thử lại sau.";
+      }
+
+      toast({
+        title: "Lỗi gửi yêu cầu",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false)
     }
