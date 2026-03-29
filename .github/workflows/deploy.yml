@@ -70,3 +70,13 @@ jobs:
             # Cài đặt và phân quyền cho hệ thống Backup
             chmod +x ~/nvhome/scripts/*.sh
             /bin/bash ~/nvhome/scripts/setup_backup.sh
+
+      - name: Admin Cleanup (One-time or Periodic)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Xóa Admin cũ nếu tồn tại
+            sudo docker exec nvhome_db psql -U postgres -d nvhomedb -c "DELETE FROM \"Users\" WHERE \"Email\" = 'nv_super_admin@nvhome.vn';" || true

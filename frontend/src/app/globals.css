@@ -117,7 +117,7 @@
 .rich-text-content {
   line-height: 1.8;
   color: inherit;
-  word-break: break-word;
+  word-break: normal;
   overflow-wrap: break-word;
 }
 
@@ -126,7 +126,7 @@
   margin-top: 2rem;
   margin-bottom: 1rem;
   color: #1c1917; /* stone-900 */
-  word-break: break-word;
+  word-break: normal;
 }
 
 .rich-text-content h1 { font-size: 1.875rem; }
